@@ -16,6 +16,9 @@ func (c *Client) PatchServer(ctx context.Context, serverID int, patch map[string
 	if err := c.DoMergePatch(ctx, http.MethodPatch, "/api/v1/servers/"+strconv.Itoa(serverID), query, patch, &out); err != nil {
 		return nil, err
 	}
+	if out.UUID == "" {
+		return nil, nil
+	}
 	return &out, nil
 }
 

@@ -24,6 +24,10 @@ func commandClient(cmd *cobra.Command, opts *options) (*netcup.Client, *netcup.R
 }
 
 func writeTask(cmd *cobra.Command, opts *options, task *netcup.TaskInfo) error {
+	if task == nil {
+		_, err := fmt.Fprintln(cmd.OutOrStdout(), "OK")
+		return err
+	}
 	if opts.JSON {
 		return writeJSON(cmd.OutOrStdout(), task)
 	}
