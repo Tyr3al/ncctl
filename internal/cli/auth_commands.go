@@ -44,7 +44,10 @@ func newLoginCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			userID, _ := strconv.Atoi(info.ID)
+			userID, err := strconv.Atoi(info.ID)
+			if err != nil {
+				return fmt.Errorf("unexpected user ID %q in server response", info.ID)
+			}
 			a.cfg.APIBaseURL = opts.APIBaseURL
 			a.cfg.AuthBaseURL = opts.AuthBaseURL
 			a.cfg.UserID = userID

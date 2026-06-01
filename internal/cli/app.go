@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/tyr3al/ncctl/internal/config"
@@ -25,6 +26,15 @@ func newApp(opts *options) (*app, error) {
 	}
 	if cfg.AuthBaseURL == "" {
 		cfg.AuthBaseURL = opts.AuthBaseURL
+	}
+	for _, rawURL := range []string{cfg.APIBaseURL, cfg.AuthBaseURL} {
+		if rawURL == "" {
+			continue
+		}
+		u, err := url.Parse(rawURL)
+		if err != nil || u.Scheme != "https" {
+			return nil, fmt.Errorf("URL %q must use https", rawURL)
+		}
 	}
 	return &app{opts: opts, cfg: cfg}, nil
 }
