@@ -1,29 +1,31 @@
-# netcupctl
+# ncctl
 
 License: Apache-2.0
 
-`netcupctl` is a Go CLI and library for administering netcup Server Control Panel resources.
+`ncctl` is a Go CLI and library for administering netcup Server Control Panel resources.
 
 > This project is an experiment and is not production ready yet. Review commands carefully before using it against important infrastructure.
+>
+> This is an unofficial tool. I am not affiliated with netcup GmbH. netcup is a registered trademark of netcup GmbH.
 
 The CLI authenticates with the SCP device-code flow, stores an offline refresh token locally, and provides workflow-oriented commands for servers, failover IPs, tasks, rDNS, and other administration tasks.
 
 ## Install
 
 ```sh
-go install github.com/tyr3al/netcup-api/cmd/netcupctl@latest
+go install github.com/tyr3al/netcup-api/cmd/ncctl@latest
 ```
 
 ## Authenticate
 
 ```sh
-netcupctl login
+ncctl login
 ```
 
 The login command starts the SCP device-code flow, prints the verification URL and user code, and stores the offline refresh token in:
 
 ```text
-~/.config/netcupctl/config.json
+~/.config/ncctl/config.json
 ```
 
 Use a different config path with `--config`.
@@ -33,46 +35,46 @@ Use a different config path with `--config`.
 List servers:
 
 ```sh
-netcupctl servers list
+ncctl servers list
 ```
 
 Inspect a server with live state:
 
 ```sh
-netcupctl servers get 12345
+ncctl servers get 12345
 ```
 
 List failover IPs:
 
 ```sh
-netcupctl failover list
-netcupctl failover list --family v4
+ncctl failover list
+ncctl failover list --family v4
 ```
 
 Route a failover IP to another server and wait for the async task:
 
 ```sh
-netcupctl failover route --ip 192.0.2.10 --server-id 12345 --wait
+ncctl failover route --ip 192.0.2.10 --server-id 12345 --wait
 ```
 
 Set and delete rDNS:
 
 ```sh
-netcupctl rdns set 192.0.2.10 host.example.com
-netcupctl rdns delete 192.0.2.10
+ncctl rdns set 192.0.2.10 host.example.com
+ncctl rdns delete 192.0.2.10
 ```
 
 Use JSON output for automation:
 
 ```sh
-netcupctl --json servers list
+ncctl --json servers list
 ```
 
 Risky write operations ask for confirmation. Use `--yes` for non-interactive automation:
 
 ```sh
-netcupctl --yes disks format 12345 vda
-netcupctl --yes snapshots delete 12345 before-upgrade
+ncctl --yes disks format 12345 vda
+ncctl --yes snapshots delete 12345 before-upgrade
 ```
 
 ## Library

@@ -12,7 +12,7 @@ func TestRootCommandParsesGlobalFlags(t *testing.T) {
 	cmd.SetOut(out)
 	cmd.SetErr(out)
 	cmd.SetArgs([]string{
-		"--config", "/tmp/netcupctl.json",
+		"--config", "/tmp/ncctl.json",
 		"--api-base-url", "https://api.example.test/scp-core",
 		"--auth-base-url", "https://auth.example.test",
 		"--timeout", "5s",
@@ -24,7 +24,7 @@ func TestRootCommandParsesGlobalFlags(t *testing.T) {
 		t.Fatalf("Execute() error = %v", err)
 	}
 
-	if got, want := out.String(), "netcupctl dev\n"; got != want {
+	if got, want := out.String(), "ncctl dev\n"; got != want {
 		t.Fatalf("output = %q, want %q", got, want)
 	}
 
@@ -32,7 +32,7 @@ func TestRootCommandParsesGlobalFlags(t *testing.T) {
 	if !ok {
 		t.Fatal("root options missing")
 	}
-	if opts.ConfigPath != "/tmp/netcupctl.json" {
+	if opts.ConfigPath != "/tmp/ncctl.json" {
 		t.Fatalf("ConfigPath = %q", opts.ConfigPath)
 	}
 	if opts.APIBaseURL != "https://api.example.test/scp-core" {

@@ -20,7 +20,7 @@ func DefaultPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, "netcupctl", "config.json"), nil
+	return filepath.Join(dir, "ncctl", "config.json"), nil
 }
 
 func Load(path string) (*Config, error) {

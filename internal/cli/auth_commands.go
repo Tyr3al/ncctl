@@ -61,7 +61,7 @@ func newLoginCommand() *cobra.Command {
 func newLogoutCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "logout",
-		Short: "Remove stored netcupctl credentials",
+		Short: "Remove stored ncctl credentials",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			opts, _ := commandOptions(cmd)
 			if err := config.Remove(opts.ConfigPath); err != nil {
@@ -84,7 +84,7 @@ func newWhoamiCommand() *cobra.Command {
 				return err
 			}
 			if a.cfg.Refresh == "" {
-				return fmt.Errorf("not logged in; run netcupctl login")
+				return fmt.Errorf("not logged in; run ncctl login")
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()

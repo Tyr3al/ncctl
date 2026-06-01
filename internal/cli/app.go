@@ -39,7 +39,7 @@ func (a *app) authClient() (*netcup.AuthClient, error) {
 
 func (a *app) apiClient() (*netcup.Client, *netcup.RefreshTokenSource, error) {
 	if a.cfg.Refresh == "" {
-		return nil, nil, fmt.Errorf("not logged in; run netcupctl login")
+		return nil, nil, fmt.Errorf("not logged in; run ncctl login")
 	}
 	auth, err := a.authClient()
 	if err != nil {

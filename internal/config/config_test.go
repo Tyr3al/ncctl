@@ -7,7 +7,7 @@ import (
 )
 
 func TestSaveWritesConfigWithRestrictedPermissions(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "netcupctl", "config.json")
+	path := filepath.Join(t.TempDir(), "ncctl", "config.json")
 	cfg := &Config{APIBaseURL: "https://api.example.test", AuthBaseURL: "https://auth.example.test", UserID: 12, Refresh: "refresh"}
 	if err := Save(path, cfg); err != nil {
 		t.Fatal(err)

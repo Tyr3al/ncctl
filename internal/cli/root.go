@@ -21,11 +21,11 @@ type options struct {
 	Yes         bool
 }
 
-// NewRootCommand creates the netcupctl command tree.
+// NewRootCommand creates the ncctl command tree.
 func NewRootCommand() *cobra.Command {
 	opts := &options{}
 	cmd := &cobra.Command{
-		Use:           "netcupctl",
+		Use:           "ncctl",
 		Short:         "Administer netcup SCP resources",
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -63,7 +63,7 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Print version information",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, err := io.WriteString(cmd.OutOrStdout(), "netcupctl dev\n")
+			_, err := io.WriteString(cmd.OutOrStdout(), "ncctl dev\n")
 			return err
 		},
 	}
