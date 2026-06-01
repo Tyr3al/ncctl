@@ -49,6 +49,11 @@ func NewRootCommand() *cobra.Command {
 		newFailoverCommand(),
 		newTasksCommand(),
 		newRDNSCommand(),
+		newSnapshotsCommand(),
+		newRescueCommand(),
+		newDisksCommand(),
+		newISOCommand(),
+		newFirewallCommand(),
 	)
 	return cmd
 }

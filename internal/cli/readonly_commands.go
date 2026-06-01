@@ -85,7 +85,7 @@ func newServersCommand() *cobra.Command {
 			}})
 		},
 	}
-	cmd.AddCommand(list, get)
+	cmd.AddCommand(list, get, newServerPowerCommand(), newServerUpdateCommand())
 	return cmd
 }
 
@@ -158,6 +158,7 @@ func newInterfacesCommand() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(list, get)
+	addInterfaceWriteCommands(cmd)
 	return cmd
 }
 
@@ -362,6 +363,7 @@ func newRDNSCommand() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(get)
+	cmd.AddCommand(newRDNSWriteCommands()...)
 	return cmd
 }
 
