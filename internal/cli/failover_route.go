@@ -93,6 +93,10 @@ func writeTasks(cmd *cobra.Command, opts *options, tasks []*netcup.TaskInfo) err
 	}
 	rows := make([][]string, 0, len(tasks))
 	for _, task := range tasks {
+		if task == nil {
+			rows = append(rows, []string{"", "", "OK", ""})
+			continue
+		}
 		rows = append(rows, []string{task.UUID, task.Name, task.State, stringPtrValue(task.Message)})
 	}
 	return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, rows)
