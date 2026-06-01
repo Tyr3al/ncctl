@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tyr3al/netcup-api/pkg/netcup"
+	"github.com/tyr3al/ncctl/pkg/netcup"
 )
 
 func newServersCommand() *cobra.Command {

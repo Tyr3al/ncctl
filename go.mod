@@ -1,4 +1,4 @@
-module github.com/tyr3al/netcup-api
+module github.com/tyr3al/ncctl
 
 go 1.23
 

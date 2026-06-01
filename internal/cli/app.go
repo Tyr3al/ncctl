@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tyr3al/netcup-api/internal/config"
-	"github.com/tyr3al/netcup-api/pkg/netcup"
+	"github.com/tyr3al/ncctl/internal/config"
+	"github.com/tyr3al/ncctl/pkg/netcup"
 )
 
 type app struct {

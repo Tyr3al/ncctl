@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/tyr3al/netcup-api/pkg/netcup"
+	"github.com/tyr3al/ncctl/pkg/netcup"
 )
 
 func commandClient(cmd *cobra.Command, opts *options) (*netcup.Client, *netcup.RefreshTokenSource, context.Context, context.CancelFunc, error) {

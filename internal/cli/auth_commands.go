@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tyr3al/netcup-api/internal/config"
-	"github.com/tyr3al/netcup-api/pkg/netcup"
+	"github.com/tyr3al/ncctl/internal/config"
+	"github.com/tyr3al/ncctl/pkg/netcup"
 )
 
 func newLoginCommand() *cobra.Command {

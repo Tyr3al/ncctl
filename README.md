@@ -13,7 +13,7 @@ The CLI authenticates with the SCP device-code flow, stores an offline refresh t
 ## Install
 
 ```sh
-go install github.com/tyr3al/netcup-api/cmd/ncctl@latest
+go install github.com/tyr3al/ncctl/cmd/ncctl@latest
 ```
 
 ## Authenticate

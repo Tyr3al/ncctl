@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tyr3al/netcup-api/internal/cli"
+	"github.com/tyr3al/ncctl/internal/cli"
 )
 
 func main() {
