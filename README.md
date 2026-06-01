@@ -57,6 +57,18 @@ Route a failover IP to another server and wait for the async task:
 ncctl failover route --ip 192.0.2.10 --server-id 12345 --wait
 ```
 
+Route multiple failover IPs in one command, for example from a keepalived transition script:
+
+```sh
+ncctl --timeout 2m --json failover route \
+  --server-id 12345 \
+  --ip 192.0.2.10 \
+  --ip 2001:db8:1234::/64 \
+  --wait
+```
+
+The command routes each IP sequentially and exits non-zero if any lookup, route request, or waited task fails.
+
 Set and delete rDNS:
 
 ```sh

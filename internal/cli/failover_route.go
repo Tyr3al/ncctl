@@ -13,19 +13,25 @@ import (
 )
 
 func newFailoverRouteCommand() *cobra.Command {
-	var ip string
+	var ips []string
 	var id, serverID int
 	var family string
 	var wait bool
 	cmd := &cobra.Command{
 		Use:   "route",
-		Short: "Route a failover IP to a server",
+		Short: "Route one or more failover IPs to a server",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if serverID == 0 {
 				return fmt.Errorf("--server-id is required")
 			}
-			if id == 0 && ip == "" {
+			if id == 0 && len(ips) == 0 {
 				return fmt.Errorf("one of --id or --ip is required")
+			}
+			if id != 0 && len(ips) > 0 {
+				return fmt.Errorf("--id and --ip cannot be combined")
+			}
+			if id != 0 && family == "" {
+				return fmt.Errorf("--family is required when routing by --id")
 			}
 			opts, _ := commandOptions(cmd)
 			a, err := newApp(opts)
@@ -38,28 +44,54 @@ func newFailoverRouteCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
-			task, err := routeFailover(ctx, client, a.cfg.UserID, family, ip, id, serverID)
-			if err != nil {
-				return err
-			}
-			if wait && task.UUID != "" {
-				task, err = client.WaitTask(ctx, task.UUID, 2*time.Second)
+			tasks := make([]*netcup.TaskInfo, 0, max(1, len(ips)))
+			if id != 0 {
+				task, err := routeFailover(ctx, client, a.cfg.UserID, family, "", id, serverID)
 				if err != nil {
 					return err
 				}
+				if wait && task.UUID != "" {
+					task, err = client.WaitTask(ctx, task.UUID, 2*time.Second)
+					if err != nil {
+						return err
+					}
+				}
+				tasks = append(tasks, task)
+			} else {
+				for _, ip := range ips {
+					task, err := routeFailover(ctx, client, a.cfg.UserID, family, ip, 0, serverID)
+					if err != nil {
+						return err
+					}
+					if wait && task.UUID != "" {
+						task, err = client.WaitTask(ctx, task.UUID, 2*time.Second)
+						if err != nil {
+							return err
+						}
+					}
+					tasks = append(tasks, task)
+				}
 			}
-			if opts.JSON {
-				return writeJSON(cmd.OutOrStdout(), task)
-			}
-			return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, [][]string{{task.UUID, task.Name, task.State, stringPtrValue(task.Message)}})
+			return writeTasks(cmd, opts, tasks)
 		},
 	}
-	cmd.Flags().StringVar(&ip, "ip", "", "failover IP or IPv6 prefix")
+	cmd.Flags().StringArrayVar(&ips, "ip", nil, "failover IP or IPv6 prefix; repeat for multiple IPs")
 	cmd.Flags().IntVar(&id, "id", 0, "failover IP ID")
 	cmd.Flags().StringVar(&family, "family", "", "IP family: v4 or v6; inferred from --ip when omitted")
 	cmd.Flags().IntVar(&serverID, "server-id", 0, "target server ID")
 	cmd.Flags().BoolVar(&wait, "wait", false, "wait for the routing task to finish")
 	return cmd
+}
+
+func writeTasks(cmd *cobra.Command, opts *options, tasks []*netcup.TaskInfo) error {
+	if opts.JSON {
+		return writeJSON(cmd.OutOrStdout(), tasks)
+	}
+	rows := make([][]string, 0, len(tasks))
+	for _, task := range tasks {
+		rows = append(rows, []string{task.UUID, task.Name, task.State, stringPtrValue(task.Message)})
+	}
+	return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, rows)
 }
 
 func routeFailover(ctx context.Context, client *netcup.Client, userID int, family, ip string, id, serverID int) (*netcup.TaskInfo, error) {
