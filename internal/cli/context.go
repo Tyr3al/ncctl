@@ -9,6 +9,6 @@ func attachOptions(cmd *cobra.Command, opts *options) {
 }
 
 func commandOptions(cmd *cobra.Command) (*options, bool) {
-	opts, ok := optionsFromContext(cmd.Context())
+	opts, ok := optionsFromContext(cmd.Root().Context())
 	return opts, ok
 }

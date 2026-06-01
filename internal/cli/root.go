@@ -39,7 +39,7 @@ func NewRootCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&opts.Yes, "yes", "y", false, "confirm risky operations")
 
 	attachOptions(cmd, opts)
-	cmd.AddCommand(newVersionCommand())
+	cmd.AddCommand(newVersionCommand(), newLoginCommand(), newLogoutCommand(), newWhoamiCommand())
 	return cmd
 }
 
