@@ -1,5 +1,7 @@
 # netcupctl
 
+License: Apache-2.0
+
 `netcupctl` is a Go CLI and library for administering netcup Server Control Panel resources.
 
 > This project is an experiment and is not production ready yet. Review commands carefully before using it against important infrastructure.
