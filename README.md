@@ -2,13 +2,11 @@
 
 License: Apache-2.0
 
-`ncctl` is a Go CLI and library for administering netcup Server Control Panel resources.
+`ncctl` is a Go CLI and library for administering netcup Server Control Panel (SCP) resources.
 
 > This project is an experiment and is not production ready yet. Review commands carefully before using it against important infrastructure.
 >
 > This is an unofficial tool. I am not affiliated with netcup GmbH. netcup is a registered trademark of netcup GmbH.
-
-The CLI authenticates with the SCP device-code flow, stores an offline refresh token locally, and provides workflow-oriented commands for servers, failover IPs, tasks, rDNS, and other administration tasks.
 
 ## Install
 
@@ -16,83 +14,94 @@ The CLI authenticates with the SCP device-code flow, stores an offline refresh t
 go install github.com/tyr3al/ncctl/cmd/ncctl@latest
 ```
 
-## Authenticate
+## Authentication
+
+`ncctl` uses the **OAuth2 Device Authorization Grant** (RFC 8628). No password is ever stored.
 
 ```sh
 ncctl login
 ```
 
-The login command starts the SCP device-code flow, prints the verification URL and user code, and stores the offline refresh token in:
+The login command:
 
-```text
-~/.config/ncctl/config.json
-```
+1. Requests a device code from the SCP authorization server.
+2. Prints a verification URL and a short user code.
+3. You open the URL in a browser and approve the request.
+4. `ncctl` polls until approval is granted, then stores a refresh token locally.
 
-Use a different config path with `--config`.
+The refresh token is written to:
 
-## Common Tasks
+| Platform | Default path |
+|----------|-------------|
+| Linux    | `~/.config/ncctl/config.json` |
+| macOS    | `~/Library/Application Support/ncctl/config.json` |
+| Windows  | `%AppData%\ncctl\config.json` |
 
-More examples, including keepalived integration, are available in [docs/usage-examples.md](docs/usage-examples.md).
+The file is created with mode `0600` (owner read/write only). The parent directory is created with mode `0700`.
 
-List servers:
+On every subsequent command, `ncctl` silently exchanges the refresh token for a short-lived access token. No re-login is needed until the refresh token expires or is revoked.
 
-```sh
-ncctl servers list
-```
-
-Inspect a server with live state:
-
-```sh
-ncctl servers get 12345
-ncctl servers get v220000000000000000
-```
-
-Commands that take a server accept either the numeric SCP ID or the server name shown in the web UI. For flags that are already named `--server-id`, the value can also be a server name.
-
-List failover IPs:
+Use a custom config path:
 
 ```sh
-ncctl failover list
-ncctl failover list --family v4
+ncctl --config /etc/ncctl/config.json login
 ```
 
-Route a failover IP to another server and wait for the async task:
+Check who is currently logged in:
 
 ```sh
-ncctl failover route --ip 192.0.2.10 --server-id 12345 --wait
+ncctl whoami
 ```
 
-Route multiple failover IPs in one command, for example from a keepalived transition script:
+Remove stored credentials:
 
 ```sh
-ncctl --timeout 2m --json failover route \
-  --server-id v220000000000000000 \
-  --ip 192.0.2.10 \
-  --ip 2001:db8:1234::/64 \
-  --wait
+ncctl logout
 ```
 
-The command routes each IP sequentially and exits non-zero if any lookup, route request, or waited task fails.
+## Global Flags
 
-Set and delete rDNS:
+These flags are available on every command:
 
-```sh
-ncctl rdns set 192.0.2.10 host.example.com
-ncctl rdns delete 192.0.2.10
-```
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config` | OS default | Path to the config file |
+| `--api-base-url` | `https://servercontrolpanel.de/scp-core` | SCP API base URL |
+| `--auth-base-url` | `https://servercontrolpanel.de` | SCP auth base URL |
+| `--timeout` | `30s` | Request timeout |
+| `--json` | `false` | Write JSON output instead of a table |
+| `--yes` / `-y` | `false` | Skip confirmation prompts on destructive operations |
 
-Use JSON output for automation:
+Both base URLs must use `https`. HTTP URLs are rejected to prevent token exposure.
 
-```sh
-ncctl --json servers list
-```
+## Server References
 
-Risky write operations ask for confirmation. Use `--yes` for non-interactive automation:
+Every command that takes a `<server>` argument accepts either:
 
-```sh
-ncctl --yes disks format 12345 vda
-ncctl --yes snapshots delete 12345 before-upgrade
-```
+- The **numeric SCP ID** (e.g. `12345`)
+- The **server name** as shown in the web UI (e.g. `v2202508149564377314`)
+
+The same applies to `--server-id` flags.
+
+## Command Reference
+
+A full command reference with examples is in [docs/usage-examples.md](docs/usage-examples.md).
+
+| Command group | What it manages |
+|---------------|----------------|
+| `servers`     | List, inspect, update, and control server power |
+| `interfaces`  | List and manage network interfaces |
+| `failover`    | List and route failover IPs |
+| `tasks`       | List, inspect, wait for, and cancel async tasks |
+| `rdns`        | Get, set, and delete reverse DNS entries |
+| `snapshots`   | Create, list, revert, export, and delete snapshots |
+| `rescue`      | Enable and disable the rescue system |
+| `disks`       | List, inspect, format, and reconfigure disks |
+| `iso`         | Attach and detach ISO images |
+| `firewall`    | Manage firewall policies and interface rules |
+| `system`      | Ping the API, read maintenance info and the OpenAPI document |
+| `server`      | Metrics, logs, image setup, guest agent, GPU driver, storage optimization |
+| `user`        | Inspect and update user, manage images, ISOs, SSH keys, and VLANs |
 
 ## Library
 
