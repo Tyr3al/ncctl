@@ -14,7 +14,7 @@ func TestFailoverRouteAllowsMultipleIPs(t *testing.T) {
 	cmd.SetArgs([]string{
 		"--config", "missing",
 		"failover", "route",
-		"--server-id", "123",
+		"--server-id", "v220000000000000000",
 		"--ip", "192.0.2.10",
 		"--ip", "2001:db8::/64",
 	})

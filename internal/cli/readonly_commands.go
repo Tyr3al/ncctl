@@ -50,14 +50,10 @@ func newServersCommand() *cobra.Command {
 	}
 	list.Flags().IntVar(&limit, "limit", 100, "maximum number of servers to fetch")
 	get := &cobra.Command{
-		Use:   "get <server-id>",
+		Use:   "get <server>",
 		Short: "Get a server",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, err := strconv.Atoi(args[0])
-			if err != nil {
-				return fmt.Errorf("invalid server id: %w", err)
-			}
 			opts, _ := commandOptions(cmd)
 			a, err := newApp(opts)
 			if err != nil {
@@ -69,6 +65,10 @@ func newServersCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
+			serverID, err := resolveServerID(ctx, client, args[0])
+			if err != nil {
+				return err
+			}
 			server, err := client.GetServer(ctx, serverID, true)
 			if err != nil {
 				return err
@@ -92,14 +92,10 @@ func newServersCommand() *cobra.Command {
 func newInterfacesCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "interfaces", Short: "Manage server interfaces"}
 	list := &cobra.Command{
-		Use:   "list <server-id>",
+		Use:   "list <server>",
 		Short: "List server interfaces",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, err := strconv.Atoi(args[0])
-			if err != nil {
-				return fmt.Errorf("invalid server id: %w", err)
-			}
 			opts, _ := commandOptions(cmd)
 			a, err := newApp(opts)
 			if err != nil {
@@ -111,6 +107,10 @@ func newInterfacesCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
+			serverID, err := resolveServerID(ctx, client, args[0])
+			if err != nil {
+				return err
+			}
 			ifaces, err := client.ListInterfaces(ctx, serverID, true)
 			if err != nil {
 				return err
@@ -126,14 +126,10 @@ func newInterfacesCommand() *cobra.Command {
 		},
 	}
 	get := &cobra.Command{
-		Use:   "get <server-id> <mac>",
+		Use:   "get <server> <mac>",
 		Short: "Get a server interface",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, err := strconv.Atoi(args[0])
-			if err != nil {
-				return fmt.Errorf("invalid server id: %w", err)
-			}
 			opts, _ := commandOptions(cmd)
 			a, err := newApp(opts)
 			if err != nil {
@@ -145,6 +141,10 @@ func newInterfacesCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
+			serverID, err := resolveServerID(ctx, client, args[0])
+			if err != nil {
+				return err
+			}
 			iface, err := client.GetInterface(ctx, serverID, args[1], true)
 			if err != nil {
 				return err
@@ -164,8 +164,7 @@ func newInterfacesCommand() *cobra.Command {
 
 func newFailoverCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "failover", Short: "Manage failover IPs"}
-	var family, ip string
-	var serverID int
+	var family, ip, serverRef string
 	list := &cobra.Command{
 		Use:   "list",
 		Short: "List failover IPs",
@@ -181,6 +180,13 @@ func newFailoverCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
+			var serverID int
+			if serverRef != "" {
+				serverID, err = resolveServerID(ctx, client, serverRef)
+				if err != nil {
+					return err
+				}
+			}
 			filter := netcup.ListFailoverOptions{IP: ip, ServerID: serverID}
 			switch family {
 			case "", "all":
@@ -221,7 +227,7 @@ func newFailoverCommand() *cobra.Command {
 	}
 	list.Flags().StringVar(&family, "family", "all", "IP family: all, v4, or v6")
 	list.Flags().StringVar(&ip, "ip", "", "filter by IP")
-	list.Flags().IntVar(&serverID, "server-id", 0, "filter by server ID")
+	list.Flags().StringVar(&serverRef, "server-id", "", "filter by server ID or name")
 	route := newFailoverRouteCommand()
 	cmd.AddCommand(list, route)
 	return cmd

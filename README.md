@@ -42,7 +42,10 @@ Inspect a server with live state:
 
 ```sh
 ncctl servers get 12345
+ncctl servers get v220000000000000000
 ```
+
+Commands that take a server accept either the numeric SCP ID or the server name shown in the web UI. For flags that are already named `--server-id`, the value can also be a server name.
 
 List failover IPs:
 
@@ -61,7 +64,7 @@ Route multiple failover IPs in one command, for example from a keepalived transi
 
 ```sh
 ncctl --timeout 2m --json failover route \
-  --server-id 12345 \
+  --server-id v220000000000000000 \
   --ip 192.0.2.10 \
   --ip 2001:db8:1234::/64 \
   --wait

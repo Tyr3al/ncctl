@@ -14,14 +14,14 @@ import (
 
 func newFailoverRouteCommand() *cobra.Command {
 	var ips []string
-	var id, serverID int
-	var family string
+	var id int
+	var family, serverRef string
 	var wait bool
 	cmd := &cobra.Command{
 		Use:   "route",
 		Short: "Route one or more failover IPs to a server",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if serverID == 0 {
+			if serverRef == "" {
 				return fmt.Errorf("--server-id is required")
 			}
 			if id == 0 && len(ips) == 0 {
@@ -44,6 +44,10 @@ func newFailoverRouteCommand() *cobra.Command {
 			}
 			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
 			defer cancel()
+			serverID, err := resolveServerID(ctx, client, serverRef)
+			if err != nil {
+				return err
+			}
 			tasks := make([]*netcup.TaskInfo, 0, max(1, len(ips)))
 			if id != 0 {
 				task, err := routeFailover(ctx, client, a.cfg.UserID, family, "", id, serverID)
@@ -78,7 +82,7 @@ func newFailoverRouteCommand() *cobra.Command {
 	cmd.Flags().StringArrayVar(&ips, "ip", nil, "failover IP or IPv6 prefix; repeat for multiple IPs")
 	cmd.Flags().IntVar(&id, "id", 0, "failover IP ID")
 	cmd.Flags().StringVar(&family, "family", "", "IP family: v4 or v6; inferred from --ip when omitted")
-	cmd.Flags().IntVar(&serverID, "server-id", 0, "target server ID")
+	cmd.Flags().StringVar(&serverRef, "server-id", "", "target server ID or name")
 	cmd.Flags().BoolVar(&wait, "wait", false, "wait for the routing task to finish")
 	return cmd
 }

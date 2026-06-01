@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/tyr3al/ncctl/pkg/netcup"
@@ -30,22 +29,31 @@ func writeTask(cmd *cobra.Command, opts *options, task *netcup.TaskInfo) error {
 	return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, [][]string{{task.UUID, task.Name, task.State, stringPtrValue(task.Message)}})
 }
 
+func commandServerID(cmd *cobra.Command, opts *options, ref string) (*netcup.Client, context.Context, context.CancelFunc, int, error) {
+	client, _, ctx, cancel, err := commandClient(cmd, opts)
+	if err != nil {
+		return nil, nil, nil, 0, err
+	}
+	serverID, err := resolveServerID(ctx, client, ref)
+	if err != nil {
+		cancel()
+		return nil, nil, nil, 0, err
+	}
+	return client, ctx, cancel, serverID, nil
+}
+
 func newServerPowerCommand() *cobra.Command {
 	var stateOption string
 	cmd := &cobra.Command{
-		Use:   "power <server-id> <ON|OFF|SUSPENDED>",
+		Use:   "power <server> <ON|OFF|SUSPENDED>",
 		Short: "Change server power state",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
-			}
 			opts, _ := commandOptions(cmd)
 			if err := confirmRisky(cmd, opts, "Changing server power state"); err != nil {
 				return err
 			}
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -66,14 +74,10 @@ func newServerUpdateCommand() *cobra.Command {
 	var autostart, uefi bool
 	var setAutostart, setUEFI bool
 	cmd := &cobra.Command{
-		Use:   "update <server-id>",
+		Use:   "update <server>",
 		Short: "Update server attributes",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
-			}
 			patch := map[string]any{}
 			if hostname != "" {
 				patch["hostname"] = hostname
@@ -91,7 +95,7 @@ func newServerUpdateCommand() *cobra.Command {
 				return fmt.Errorf("no updates requested")
 			}
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -114,15 +118,14 @@ func newServerUpdateCommand() *cobra.Command {
 
 func addInterfaceWriteCommands(cmd *cobra.Command) {
 	create := &cobra.Command{
-		Use:   "create-vlan <server-id>",
+		Use:   "create-vlan <server>",
 		Short: "Create a VLAN interface",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			vlanID, _ := cmd.Flags().GetInt("vlan-id")
 			driver, _ := cmd.Flags().GetString("driver")
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -139,14 +142,13 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 	_ = create.MarkFlagRequired("vlan-id")
 
 	update := &cobra.Command{
-		Use:   "update <server-id> <mac>",
+		Use:   "update <server> <mac>",
 		Short: "Update an interface",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			driver, _ := cmd.Flags().GetString("driver")
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -162,16 +164,15 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 	_ = update.MarkFlagRequired("driver")
 
 	del := &cobra.Command{
-		Use:   "delete <server-id> <mac>",
+		Use:   "delete <server> <mac>",
 		Short: "Delete an interface",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			opts, _ := commandOptions(cmd)
 			if err := confirmRisky(cmd, opts, "Deleting an interface"); err != nil {
 				return err
 			}
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -184,18 +185,17 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 
 func newSnapshotsCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "snapshots", Short: "Manage snapshots"}
-	list := simpleServerListCommand("list <server-id>", "List snapshots", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+	list := simpleServerListCommand("list <server>", "List snapshots", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 		return client.ListSnapshots(ctx, serverID)
 	})
 	create := &cobra.Command{
-		Use:   "create <server-id> <name>",
+		Use:   "create <server> <name>",
 		Short: "Create a snapshot",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			online, _ := cmd.Flags().GetBool("online")
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -214,13 +214,13 @@ func newSnapshotsCommand() *cobra.Command {
 
 func newRescueCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "rescue", Short: "Manage rescue system"}
-	status := simpleServerListCommand("status <server-id>", "Show rescue status", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+	status := simpleServerListCommand("status <server>", "Show rescue status", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 		return client.GetRescueSystem(ctx, serverID)
 	})
-	enable := serverTaskCommand("enable <server-id>", "Enable rescue system", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
+	enable := serverTaskCommand("enable <server>", "Enable rescue system", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
 		return client.ActivateRescueSystem(ctx, serverID)
 	})
-	disable := serverTaskCommand("disable <server-id>", "Disable rescue system", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
+	disable := serverTaskCommand("disable <server>", "Disable rescue system", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
 		return client.DeactivateRescueSystem(ctx, serverID)
 	})
 	cmd.AddCommand(status, enable, disable)
@@ -229,20 +229,19 @@ func newRescueCommand() *cobra.Command {
 
 func newDisksCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "disks", Short: "Manage disks"}
-	list := simpleServerListCommand("list <server-id>", "List disks", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+	list := simpleServerListCommand("list <server>", "List disks", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 		return client.ListDisks(ctx, serverID)
 	})
 	format := &cobra.Command{
-		Use:   "format <server-id> <disk-name>",
+		Use:   "format <server> <disk-name>",
 		Short: "Format a disk",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			opts, _ := commandOptions(cmd)
 			if err := confirmRisky(cmd, opts, "Formatting a disk will destroy data"); err != nil {
 				return err
 			}
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -261,19 +260,18 @@ func newDisksCommand() *cobra.Command {
 func newISOCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "iso", Short: "Manage ISO attachments"}
 	cmd.AddCommand(
-		simpleServerListCommand("attached <server-id>", "Show attached ISO", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+		simpleServerListCommand("attached <server>", "Show attached ISO", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 			return client.GetAttachedISO(ctx, serverID)
 		}),
-		simpleServerListCommand("list <server-id>", "List available ISO images", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+		simpleServerListCommand("list <server>", "List available ISO images", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 			return client.ListISOImages(ctx, serverID)
 		}),
 	)
 	attach := &cobra.Command{
-		Use:   "attach <server-id>",
+		Use:   "attach <server>",
 		Short: "Attach an ISO",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			isoID, _ := cmd.Flags().GetInt("iso-id")
 			userISO, _ := cmd.Flags().GetString("user-iso")
 			boot, _ := cmd.Flags().GetBool("boot-cdrom")
@@ -285,7 +283,7 @@ func newISOCommand() *cobra.Command {
 				body["userIsoName"] = userISO
 			}
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -300,7 +298,7 @@ func newISOCommand() *cobra.Command {
 	attach.Flags().Int("iso-id", 0, "ISO image ID")
 	attach.Flags().String("user-iso", "", "user ISO name")
 	attach.Flags().Bool("boot-cdrom", false, "change boot device to CD-ROM")
-	detach := serverTaskCommand("detach <server-id>", "Detach ISO", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
+	detach := serverTaskCommand("detach <server>", "Detach ISO", true, func(client *netcup.Client, ctx context.Context, serverID int) (*netcup.TaskInfo, error) {
 		return client.DetachISO(ctx, serverID)
 	})
 	cmd.AddCommand(attach, detach)
@@ -332,10 +330,9 @@ func newFirewallCommand() *cobra.Command {
 	)
 	iface := &cobra.Command{Use: "interface", Short: "Manage interface firewall"}
 	iface.AddCommand(
-		&cobra.Command{Use: "get <server-id> <mac>", Short: "Get interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
+		&cobra.Command{Use: "get <server> <mac>", Short: "Get interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
 			opts, _ := commandOptions(cmd)
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -346,13 +343,12 @@ func newFirewallCommand() *cobra.Command {
 			}
 			return writeJSON(cmd.OutOrStdout(), firewall)
 		}},
-		&cobra.Command{Use: "reapply <server-id> <mac>", Short: "Reapply interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
+		&cobra.Command{Use: "reapply <server> <mac>", Short: "Reapply interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
 			opts, _ := commandOptions(cmd)
 			if err := confirmRisky(cmd, opts, "Reapplying interface firewall"); err != nil {
 				return err
 			}
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
@@ -370,12 +366,8 @@ func newFirewallCommand() *cobra.Command {
 
 func simpleServerListCommand(use, short string, run func(*netcup.Client, context.Context, int) (any, error)) *cobra.Command {
 	return &cobra.Command{Use: use, Short: short, Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
-		serverID, err := strconv.Atoi(args[0])
-		if err != nil {
-			return err
-		}
 		opts, _ := commandOptions(cmd)
-		client, _, ctx, cancel, err := commandClient(cmd, opts)
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 		if err != nil {
 			return err
 		}
@@ -390,17 +382,13 @@ func simpleServerListCommand(use, short string, run func(*netcup.Client, context
 
 func serverTaskCommand(use, short string, risky bool, run func(*netcup.Client, context.Context, int) (*netcup.TaskInfo, error)) *cobra.Command {
 	return &cobra.Command{Use: use, Short: short, Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
-		serverID, err := strconv.Atoi(args[0])
-		if err != nil {
-			return err
-		}
 		opts, _ := commandOptions(cmd)
 		if risky {
 			if err := confirmRisky(cmd, opts, short); err != nil {
 				return err
 			}
 		}
-		client, _, ctx, cancel, err := commandClient(cmd, opts)
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 		if err != nil {
 			return err
 		}
@@ -415,18 +403,17 @@ func serverTaskCommand(use, short string, risky bool, run func(*netcup.Client, c
 
 func snapshotAction(name, short string, risky bool) *cobra.Command {
 	return &cobra.Command{
-		Use:   name + " <server-id> <name>",
+		Use:   name + " <server> <name>",
 		Short: short,
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverID, _ := strconv.Atoi(args[0])
 			opts, _ := commandOptions(cmd)
 			if risky {
 				if err := confirmRisky(cmd, opts, short); err != nil {
 					return err
 				}
 			}
-			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
 				return err
 			}
