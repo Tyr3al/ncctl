@@ -15,13 +15,13 @@ func resolveServerID(ctx context.Context, client *netcup.Client, ref string) (in
 	if id, err := strconv.Atoi(ref); err == nil {
 		return id, nil
 	}
-	servers, err := client.ListServers(ctx, netcup.ListServersOptions{Name: ref, Limit: 100})
+	servers, err := client.ListServers(ctx, netcup.ListServersOptions{Limit: 100})
 	if err != nil {
 		return 0, err
 	}
 	var matches []netcup.ServerListMinimal
 	for _, server := range servers {
-		if server.Name == ref {
+		if server.Name == ref || (server.Nickname != nil && *server.Nickname == ref) {
 			matches = append(matches, server)
 		}
 	}

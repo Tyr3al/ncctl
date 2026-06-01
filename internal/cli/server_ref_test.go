@@ -26,9 +26,6 @@ func TestResolveServerIDByExactName(t *testing.T) {
 		if r.URL.Path != "/scp-core/api/v1/servers" {
 			t.Fatalf("path = %q", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("name"); got != "v220000000000000000" {
-			t.Fatalf("name query = %q", got)
-		}
 		return cliJSONResponse(http.StatusOK, []netcup.ServerListMinimal{
 			{ID: 11, Name: "other"},
 			{ID: 42, Name: "v220000000000000000"},
@@ -38,6 +35,26 @@ func TestResolveServerIDByExactName(t *testing.T) {
 		t.Fatal(err)
 	}
 	id, err := resolveServerID(context.Background(), client, "v220000000000000000")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id != 42 {
+		t.Fatalf("id = %d, want 42", id)
+	}
+}
+
+func TestResolveServerIDByNickname(t *testing.T) {
+	nickname := "main-leviathan"
+	client, err := netcup.NewClient("https://example.test/scp-core", netcup.WithHTTPClient(&http.Client{Transport: cliRoundTripFunc(func(r *http.Request) (*http.Response, error) {
+		return cliJSONResponse(http.StatusOK, []netcup.ServerListMinimal{
+			{ID: 11, Name: "v100000000000000000"},
+			{ID: 42, Name: "v220000000000000000", Nickname: &nickname},
+		}), nil
+	})}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	id, err := resolveServerID(context.Background(), client, "main-leviathan")
 	if err != nil {
 		t.Fatal(err)
 	}
