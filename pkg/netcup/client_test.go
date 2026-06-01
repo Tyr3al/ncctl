@@ -145,6 +145,39 @@ func TestRouteFailoverIPv4BuildsPatch(t *testing.T) {
 	}
 }
 
+func TestPatchServerUsesMergePatchContentType(t *testing.T) {
+	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Method != http.MethodPatch {
+			t.Fatalf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/scp-core/api/v1/servers/42" {
+			t.Fatalf("path = %q", r.URL.Path)
+		}
+		if got, want := r.Header.Get("Content-Type"), "application/merge-patch+json"; got != want {
+			t.Fatalf("Content-Type = %q, want %q", got, want)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body["nickname"] != "main-leviathan" {
+			t.Fatalf("body = %#v", body)
+		}
+		return jsonResponse(http.StatusAccepted, TaskInfo{TaskInfoMinimal: TaskInfoMinimal{UUID: "task-1"}}), nil
+	})
+	client, err := NewClient("https://example.test/scp-core", WithHTTPClient(&http.Client{Transport: transport}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task, err := client.PatchServer(context.Background(), 42, map[string]any{"nickname": "main-leviathan"}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if task.UUID != "task-1" {
+		t.Fatalf("task = %#v", task)
+	}
+}
+
 func TestWaitTaskPollsUntilTerminal(t *testing.T) {
 	states := []string{"RUNNING", "FINISHED"}
 	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {

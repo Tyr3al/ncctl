@@ -13,7 +13,7 @@ func (c *Client) PatchServer(ctx context.Context, serverID int, patch map[string
 		query.Set("stateOption", stateOption)
 	}
 	var out TaskInfo
-	if err := c.DoJSON(ctx, http.MethodPatch, "/api/v1/servers/"+strconv.Itoa(serverID), query, patch, &out); err != nil {
+	if err := c.DoMergePatch(ctx, http.MethodPatch, "/api/v1/servers/"+strconv.Itoa(serverID), query, patch, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -135,7 +135,7 @@ func (c *Client) ListDisks(ctx context.Context, serverID int) ([]ServerDisk, err
 
 func (c *Client) SetDiskDriver(ctx context.Context, serverID int, body map[string]any) (*TaskInfo, error) {
 	var out TaskInfo
-	if err := c.DoJSON(ctx, http.MethodPatch, "/api/v1/servers/"+strconv.Itoa(serverID)+"/disks", nil, body, &out); err != nil {
+	if err := c.DoMergePatch(ctx, http.MethodPatch, "/api/v1/servers/"+strconv.Itoa(serverID)+"/disks", nil, body, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

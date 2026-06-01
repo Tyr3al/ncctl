@@ -74,7 +74,15 @@ func NewClient(baseURL string, opts ...Option) (*Client, error) {
 }
 
 func (c *Client) DoJSON(ctx context.Context, method, path string, query url.Values, body any, out any) error {
-	req, err := c.newRequest(ctx, method, path, query, body)
+	return c.doJSON(ctx, method, path, query, body, out, "application/json")
+}
+
+func (c *Client) DoMergePatch(ctx context.Context, method, path string, query url.Values, body any, out any) error {
+	return c.doJSON(ctx, method, path, query, body, out, "application/merge-patch+json")
+}
+
+func (c *Client) doJSON(ctx context.Context, method, path string, query url.Values, body any, out any, contentType string) error {
+	req, err := c.newRequest(ctx, method, path, query, body, contentType)
 	if err != nil {
 		return err
 	}
@@ -86,7 +94,7 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, query url.Valu
 	return decodeResponse(resp, out)
 }
 
-func (c *Client) newRequest(ctx context.Context, method, path string, query url.Values, body any) (*http.Request, error) {
+func (c *Client) newRequest(ctx context.Context, method, path string, query url.Values, body any, contentType string) (*http.Request, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -110,7 +118,7 @@ func (c *Client) newRequest(ctx context.Context, method, path string, query url.
 	}
 	req.Header.Set("Accept", "application/json")
 	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", contentType)
 	}
 	if c.token != nil {
 		token, err := c.token.Token(ctx)
