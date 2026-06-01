@@ -2,6 +2,8 @@
 
 `netcupctl` is a Go CLI and library for administering netcup Server Control Panel resources.
 
+> This project is an experiment and is not production ready yet. Review commands carefully before using it against important infrastructure.
+
 The CLI authenticates with the SCP device-code flow, stores an offline refresh token locally, and provides workflow-oriented commands for servers, failover IPs, tasks, rDNS, and other administration tasks.
 
 ## Install
