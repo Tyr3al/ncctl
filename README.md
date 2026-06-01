@@ -32,6 +32,8 @@ Use a different config path with `--config`.
 
 ## Common Tasks
 
+More examples, including keepalived integration, are available in [docs/usage-examples.md](docs/usage-examples.md).
+
 List servers:
 
 ```sh
