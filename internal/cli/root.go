@@ -54,6 +54,9 @@ func NewRootCommand() *cobra.Command {
 		newDisksCommand(),
 		newISOCommand(),
 		newFirewallCommand(),
+		newSystemCommand(),
+		newServerExtrasCommand(),
+		newUserCommand(),
 	)
 	return cmd
 }

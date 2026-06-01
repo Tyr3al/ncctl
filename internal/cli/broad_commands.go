@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/tyr3al/ncctl/pkg/netcup"
@@ -188,6 +189,19 @@ func newSnapshotsCommand() *cobra.Command {
 	list := simpleServerListCommand("list <server>", "List snapshots", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 		return client.ListSnapshots(ctx, serverID)
 	})
+	get := &cobra.Command{Use: "get <server> <name>", Short: "Get a snapshot", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		snapshot, err := client.GetSnapshot(ctx, serverID, args[1])
+		if err != nil {
+			return err
+		}
+		return writeJSON(cmd.OutOrStdout(), snapshot)
+	}}
 	create := &cobra.Command{
 		Use:   "create <server> <name>",
 		Short: "Create a snapshot",
@@ -208,7 +222,27 @@ func newSnapshotsCommand() *cobra.Command {
 		},
 	}
 	create.Flags().Bool("online", false, "create online snapshot")
-	cmd.AddCommand(list, create, snapshotAction("delete", "Delete a snapshot", true), snapshotAction("revert", "Revert a snapshot", true), snapshotAction("export", "Export a snapshot", false))
+	var dryBody, dryBodyFile string
+	dryRun := &cobra.Command{Use: "dryrun <server>", Short: "Check if creating a snapshot is possible", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		body, err := parseBodyFlags(dryBody, dryBodyFile)
+		if err != nil {
+			return err
+		}
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		task, err := client.SnapshotDryRun(ctx, serverID, body)
+		if err != nil {
+			return err
+		}
+		return writeTask(cmd, opts, task)
+	}}
+	dryRun.Flags().StringVar(&dryBody, "body", "", "JSON request body")
+	dryRun.Flags().StringVar(&dryBodyFile, "body-file", "", "file containing JSON request body")
+	cmd.AddCommand(list, get, create, dryRun, snapshotAction("delete", "Delete a snapshot", true), snapshotAction("revert", "Revert a snapshot", true), snapshotAction("export", "Export a snapshot", false))
 	return cmd
 }
 
@@ -232,6 +266,45 @@ func newDisksCommand() *cobra.Command {
 	list := simpleServerListCommand("list <server>", "List disks", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
 		return client.ListDisks(ctx, serverID)
 	})
+	supported := simpleServerListCommand("supported-drivers <server>", "List supported disk drivers", func(client *netcup.Client, ctx context.Context, serverID int) (any, error) {
+		return client.GetSupportedDiskDrivers(ctx, serverID)
+	})
+	get := &cobra.Command{Use: "get <server> <disk-name>", Short: "Get a disk", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		disk, err := client.GetDisk(ctx, serverID, args[1])
+		if err != nil {
+			return err
+		}
+		return writeJSON(cmd.OutOrStdout(), disk)
+	}}
+	var driverBody, driverBodyFile string
+	setDriver := &cobra.Command{Use: "set-driver <server>", Short: "Set disk driver configuration", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		if err := confirmRisky(cmd, opts, "Updating disk drivers"); err != nil {
+			return err
+		}
+		body, err := parseBodyFlags(driverBody, driverBodyFile)
+		if err != nil {
+			return err
+		}
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		task, err := client.SetDiskDriver(ctx, serverID, body)
+		if err != nil {
+			return err
+		}
+		return writeTask(cmd, opts, task)
+	}}
+	setDriver.Flags().StringVar(&driverBody, "body", "", "JSON request body")
+	setDriver.Flags().StringVar(&driverBodyFile, "body-file", "", "file containing JSON request body")
 	format := &cobra.Command{
 		Use:   "format <server> <disk-name>",
 		Short: "Format a disk",
@@ -253,7 +326,7 @@ func newDisksCommand() *cobra.Command {
 			return writeTask(cmd, opts, task)
 		},
 	}
-	cmd.AddCommand(list, format)
+	cmd.AddCommand(list, supported, get, setDriver, format)
 	return cmd
 }
 
@@ -308,6 +381,52 @@ func newISOCommand() *cobra.Command {
 func newFirewallCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "firewall", Short: "Manage firewalls"}
 	policies := &cobra.Command{Use: "policies", Short: "Manage firewall policies"}
+	var createBody, createBodyFile string
+	create := &cobra.Command{Use: "create", Short: "Create firewall policy", RunE: func(cmd *cobra.Command, _ []string) error {
+		body, err := parseBodyFlags(createBody, createBodyFile)
+		if err != nil {
+			return err
+		}
+		a, client, ctx, cancel, err := appClientFromCommand(cmd)
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		policy, err := client.CreateFirewallPolicy(ctx, a.cfg.UserID, body)
+		if err != nil {
+			return err
+		}
+		return writeJSON(cmd.OutOrStdout(), policy)
+	}}
+	create.Flags().StringVar(&createBody, "body", "", "JSON request body")
+	create.Flags().StringVar(&createBodyFile, "body-file", "", "file containing JSON request body")
+	var updateBody, updateBodyFile string
+	update := &cobra.Command{Use: "update <id>", Short: "Update firewall policy", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		if err := confirmRisky(cmd, opts, "Updating firewall policy"); err != nil {
+			return err
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return err
+		}
+		body, err := parseBodyFlags(updateBody, updateBodyFile)
+		if err != nil {
+			return err
+		}
+		a, client, ctx, cancel, err := appClientFromCommand(cmd)
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		policy, err := client.UpdateFirewallPolicy(ctx, a.cfg.UserID, id, body)
+		if err != nil {
+			return err
+		}
+		return writeJSON(cmd.OutOrStdout(), policy)
+	}}
+	update.Flags().StringVar(&updateBody, "body", "", "JSON request body")
+	update.Flags().StringVar(&updateBodyFile, "body-file", "", "file containing JSON request body")
 	policies.AddCommand(
 		&cobra.Command{Use: "list", Short: "List firewall policies", RunE: func(cmd *cobra.Command, _ []string) error {
 			opts, _ := commandOptions(cmd)
@@ -327,8 +446,61 @@ func newFirewallCommand() *cobra.Command {
 			}
 			return writeJSON(cmd.OutOrStdout(), policies)
 		}},
+		jsonCommand("get <id>", "Get firewall policy", func(cmd *cobra.Command, args []string) (any, error) {
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				return nil, err
+			}
+			a, client, ctx, cancel, err := appClientFromCommand(cmd)
+			if err != nil {
+				return nil, err
+			}
+			defer cancel()
+			return client.GetFirewallPolicy(ctx, a.cfg.UserID, id)
+		}, cobra.ExactArgs(1)),
+		create,
+		update,
+		&cobra.Command{Use: "delete <id>", Short: "Delete firewall policy", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+			opts, _ := commandOptions(cmd)
+			if err := confirmRisky(cmd, opts, "Deleting firewall policy"); err != nil {
+				return err
+			}
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+			a, client, ctx, cancel, err := appClientFromCommand(cmd)
+			if err != nil {
+				return err
+			}
+			defer cancel()
+			return client.DeleteFirewallPolicy(ctx, a.cfg.UserID, id)
+		}},
 	)
 	iface := &cobra.Command{Use: "interface", Short: "Manage interface firewall"}
+	var saveBody, saveBodyFile string
+	save := &cobra.Command{Use: "save <server> <mac>", Short: "Configure interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+		opts, _ := commandOptions(cmd)
+		if err := confirmRisky(cmd, opts, "Saving interface firewall"); err != nil {
+			return err
+		}
+		body, err := parseBodyFlags(saveBody, saveBodyFile)
+		if err != nil {
+			return err
+		}
+		client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+		if err != nil {
+			return err
+		}
+		defer cancel()
+		firewall, err := client.SaveInterfaceFirewall(ctx, serverID, args[1], body)
+		if err != nil {
+			return err
+		}
+		return writeJSON(cmd.OutOrStdout(), firewall)
+	}}
+	save.Flags().StringVar(&saveBody, "body", "", "JSON request body")
+	save.Flags().StringVar(&saveBodyFile, "body-file", "", "file containing JSON request body")
 	iface.AddCommand(
 		&cobra.Command{Use: "get <server> <mac>", Short: "Get interface firewall", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
 			opts, _ := commandOptions(cmd)
@@ -354,6 +526,23 @@ func newFirewallCommand() *cobra.Command {
 			}
 			defer cancel()
 			task, err := client.ReapplyInterfaceFirewall(ctx, serverID, args[1])
+			if err != nil {
+				return err
+			}
+			return writeTask(cmd, opts, task)
+		}},
+		save,
+		&cobra.Command{Use: "restore-copied <server> <mac>", Short: "Restore copied firewall policies", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+			opts, _ := commandOptions(cmd)
+			if err := confirmRisky(cmd, opts, "Restoring copied firewall policies"); err != nil {
+				return err
+			}
+			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
+			if err != nil {
+				return err
+			}
+			defer cancel()
+			task, err := client.RestoreCopiedInterfaceFirewall(ctx, serverID, args[1])
 			if err != nil {
 				return err
 			}

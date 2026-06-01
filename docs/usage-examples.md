@@ -167,3 +167,28 @@ Delete rDNS:
 ```sh
 ncctl rdns delete 203.0.113.10
 ```
+
+## Additional API Commands
+
+`ncctl` also exposes the less common SCP API areas:
+
+```sh
+ncctl system maintenance
+ncctl system openapi
+ncctl server logs v220000000000000000
+ncctl server metrics cpu v220000000000000000 --hours 6
+ncctl server guest-agent-status v220000000000000000
+ncctl server image flavours v220000000000000000
+ncctl tasks cancel task-uuid
+ncctl user images list
+ncctl user isos list
+ncctl user ssh-keys list
+ncctl user vlans list
+```
+
+Commands that need structured request bodies accept JSON inline or from a file:
+
+```sh
+ncctl firewall policies create --body '{"name":"web","rules":[]}'
+ncctl server image setup v220000000000000000 --body-file image-setup.json --yes
+```

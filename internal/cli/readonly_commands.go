@@ -318,7 +318,28 @@ func newTasksCommand() *cobra.Command {
 			return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, [][]string{{task.UUID, task.Name, task.State, stringPtrValue(task.Message)}})
 		},
 	}
-	cmd.AddCommand(list, get, wait)
+	cancelTask := &cobra.Command{
+		Use:   "cancel <uuid>",
+		Short: "Cancel a running task",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts, _ := commandOptions(cmd)
+			if err := confirmRisky(cmd, opts, "Canceling a running task"); err != nil {
+				return err
+			}
+			client, _, ctx, cancel, err := commandClient(cmd, opts)
+			if err != nil {
+				return err
+			}
+			defer cancel()
+			task, err := client.CancelTask(ctx, args[0])
+			if err != nil {
+				return err
+			}
+			return writeTask(cmd, opts, task)
+		},
+	}
+	cmd.AddCommand(list, get, wait, cancelTask)
 	return cmd
 }
 
