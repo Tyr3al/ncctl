@@ -68,7 +68,7 @@ These flags are available on every command:
 | `--config` | OS default | Path to the config file |
 | `--api-base-url` | `https://servercontrolpanel.de/scp-core` | SCP API base URL |
 | `--auth-base-url` | `https://servercontrolpanel.de` | SCP auth base URL |
-| `--timeout` | `30s` | Request timeout |
+| `--timeout` | `0` (no limit) | Overall operation timeout; individual HTTP requests always time out after 30s |
 | `--json` | `false` | Write JSON output instead of a table |
 | `--yes` / `-y` | `false` | Skip confirmation prompts on destructive operations |
 

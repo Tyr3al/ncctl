@@ -35,7 +35,7 @@ func NewRootCommand() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&opts.ConfigPath, "config", "", "config file path")
 	cmd.PersistentFlags().StringVar(&opts.APIBaseURL, "api-base-url", defaultAPIBaseURL, "SCP API base URL")
 	cmd.PersistentFlags().StringVar(&opts.AuthBaseURL, "auth-base-url", defaultAuthBaseURL, "SCP auth base URL")
-	cmd.PersistentFlags().DurationVar(&opts.Timeout, "timeout", 30*time.Second, "request timeout")
+	cmd.PersistentFlags().DurationVar(&opts.Timeout, "timeout", 0, "overall operation timeout; 0 means no limit (individual HTTP requests always time out after 30s)")
 	cmd.PersistentFlags().BoolVar(&opts.JSON, "json", false, "write JSON output")
 	cmd.PersistentFlags().BoolVarP(&opts.Yes, "yes", "y", false, "confirm risky operations")
 

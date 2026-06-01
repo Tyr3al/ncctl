@@ -43,8 +43,12 @@ func (a *app) save() error {
 	return config.Save(a.opts.ConfigPath, a.cfg)
 }
 
+// requestTimeout caps individual HTTP requests. It is intentionally separate
+// from --timeout, which controls the overall operation deadline (e.g. a wait loop).
+const requestTimeout = 30 * time.Second
+
 func (a *app) authClient() (*netcup.AuthClient, error) {
-	return netcup.NewAuthClient(a.cfg.AuthBaseURL, netcup.WithAuthHTTPClient(&http.Client{Timeout: a.opts.Timeout}))
+	return netcup.NewAuthClient(a.cfg.AuthBaseURL, netcup.WithAuthHTTPClient(&http.Client{Timeout: requestTimeout}))
 }
 
 func (a *app) apiClient() (*netcup.Client, *netcup.RefreshTokenSource, error) {
@@ -56,16 +60,21 @@ func (a *app) apiClient() (*netcup.Client, *netcup.RefreshTokenSource, error) {
 		return nil, nil, err
 	}
 	source := netcup.NewRefreshTokenSource(auth, a.cfg.Refresh)
-	client, err := netcup.NewClient(a.cfg.APIBaseURL, netcup.WithHTTPClient(&http.Client{Timeout: a.opts.Timeout}), netcup.WithTokenSource(source))
+	client, err := netcup.NewClient(a.cfg.APIBaseURL, netcup.WithHTTPClient(&http.Client{Timeout: requestTimeout}), netcup.WithTokenSource(source))
 	if err != nil {
 		return nil, nil, err
 	}
 	return client, source, nil
 }
 
+// contextWithTimeout returns a context bounded by timeout. A timeout of 0 means
+// no deadline — useful when --timeout is not set and a wait loop must run freely.
 func contextWithTimeout(cmdCtx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
 	if cmdCtx == nil {
 		cmdCtx = context.Background()
+	}
+	if timeout <= 0 {
+		return context.WithCancel(cmdCtx)
 	}
 	return context.WithTimeout(cmdCtx, timeout)
 }
