@@ -13,6 +13,7 @@ type Config struct {
 	AuthBaseURL string `json:"auth_base_url"`
 	UserID      int    `json:"user_id,omitempty"`
 	Refresh     string `json:"refresh_token,omitempty"`
+	ServerID    int    `json:"server_id,omitempty"`
 }
 
 func DefaultPath() (string, error) {
