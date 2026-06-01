@@ -2,9 +2,12 @@ package netcup
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func (c *Client) Ping(ctx context.Context) error {
@@ -94,6 +97,28 @@ func (c *Client) ListFailoverIPv6(ctx context.Context, userID int, opts ListFail
 	return out, nil
 }
 
+type RouteFailoverIP struct {
+	ServerID int `json:"serverId"`
+}
+
+func (c *Client) RouteFailoverIPv4(ctx context.Context, userID, failoverID, serverID int) (*TaskInfo, error) {
+	var out TaskInfo
+	path := "/api/v1/users/" + strconv.Itoa(userID) + "/failoverips/v4/" + strconv.Itoa(failoverID)
+	if err := c.DoJSON(ctx, http.MethodPatch, path, nil, RouteFailoverIP{ServerID: serverID}, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *Client) RouteFailoverIPv6(ctx context.Context, userID, failoverID, serverID int) (*TaskInfo, error) {
+	var out TaskInfo
+	path := "/api/v1/users/" + strconv.Itoa(userID) + "/failoverips/v6/" + strconv.Itoa(failoverID)
+	if err := c.DoJSON(ctx, http.MethodPatch, path, nil, RouteFailoverIP{ServerID: serverID}, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *Client) GetRDNSIPv4(ctx context.Context, ip string) (string, error) {
 	var out string
 	if err := c.DoJSON(ctx, http.MethodGet, "/api/v1/rdns/ipv4/"+url.PathEscape(ip), nil, nil, &out); err != nil {
@@ -132,6 +157,49 @@ func (c *Client) GetTask(ctx context.Context, uuid string) (*TaskInfo, error) {
 		return nil, err
 	}
 	return &out, nil
+}
+
+func (c *Client) WaitTask(ctx context.Context, uuid string, interval time.Duration) (*TaskInfo, error) {
+	if interval <= 0 {
+		interval = 2 * time.Second
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		task, err := c.GetTask(ctx, uuid)
+		if err != nil {
+			return nil, err
+		}
+		if IsTerminalTaskState(task.State) {
+			if IsFailedTaskState(task.State) {
+				return task, fmt.Errorf("task %s finished with state %s", uuid, task.State)
+			}
+			return task, nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+func IsTerminalTaskState(state string) bool {
+	switch strings.ToUpper(state) {
+	case "FINISHED", "SUCCESS", "SUCCESSFUL", "DONE", "COMPLETED", "FAILED", "ERROR", "CANCELED", "CANCELLED":
+		return true
+	default:
+		return false
+	}
+}
+
+func IsFailedTaskState(state string) bool {
+	switch strings.ToUpper(state) {
+	case "FAILED", "ERROR", "CANCELED", "CANCELLED":
+		return true
+	default:
+		return false
+	}
 }
 
 func serverListQuery(opts ListServersOptions) url.Values {

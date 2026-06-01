@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tyr3al/netcup-api/pkg/netcup"
@@ -220,7 +221,8 @@ func newFailoverCommand() *cobra.Command {
 	list.Flags().StringVar(&family, "family", "all", "IP family: all, v4, or v6")
 	list.Flags().StringVar(&ip, "ip", "", "filter by IP")
 	list.Flags().IntVar(&serverID, "server-id", 0, "filter by server ID")
-	cmd.AddCommand(list)
+	route := newFailoverRouteCommand()
+	cmd.AddCommand(list, route)
 	return cmd
 }
 
@@ -283,7 +285,33 @@ func newTasksCommand() *cobra.Command {
 			return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, [][]string{{task.UUID, task.Name, task.State, stringPtrValue(task.Message)}})
 		},
 	}
-	cmd.AddCommand(list, get)
+	wait := &cobra.Command{
+		Use:   "wait <uuid>",
+		Short: "Wait for a task to finish",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts, _ := commandOptions(cmd)
+			a, err := newApp(opts)
+			if err != nil {
+				return err
+			}
+			client, _, err := a.apiClient()
+			if err != nil {
+				return err
+			}
+			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
+			defer cancel()
+			task, err := client.WaitTask(ctx, args[0], 2*time.Second)
+			if err != nil {
+				return err
+			}
+			if opts.JSON {
+				return writeJSON(cmd.OutOrStdout(), task)
+			}
+			return writeTable(cmd.OutOrStdout(), []string{"UUID", "NAME", "STATE", "MESSAGE"}, [][]string{{task.UUID, task.Name, task.State, stringPtrValue(task.Message)}})
+		},
+	}
+	cmd.AddCommand(list, get, wait)
 	return cmd
 }
 

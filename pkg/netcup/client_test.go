@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestDoJSONBuildsRequestAndDecodesResponse(t *testing.T) {
@@ -111,6 +112,59 @@ func TestReadOnlyEndpointPaths(t *testing.T) {
 		if !seen[key] {
 			t.Fatalf("did not see %s", key)
 		}
+	}
+}
+
+func TestRouteFailoverIPv4BuildsPatch(t *testing.T) {
+	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Method != http.MethodPatch {
+			t.Fatalf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/scp-core/api/v1/users/9/failoverips/v4/3" {
+			t.Fatalf("path = %q", r.URL.Path)
+		}
+		var body RouteFailoverIP
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body.ServerID != 42 {
+			t.Fatalf("serverId = %d", body.ServerID)
+		}
+		return jsonResponse(http.StatusAccepted, TaskInfo{TaskInfoMinimal: TaskInfoMinimal{UUID: "task-1", State: "RUNNING"}}), nil
+	})
+	client, err := NewClient("https://example.test/scp-core", WithHTTPClient(&http.Client{Transport: transport}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task, err := client.RouteFailoverIPv4(context.Background(), 9, 3, 42)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if task.UUID != "task-1" {
+		t.Fatalf("task = %#v", task)
+	}
+}
+
+func TestWaitTaskPollsUntilTerminal(t *testing.T) {
+	states := []string{"RUNNING", "FINISHED"}
+	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		if len(states) == 0 {
+			t.Fatal("too many polls")
+		}
+		state := states[0]
+		states = states[1:]
+		return jsonResponse(http.StatusOK, TaskInfo{TaskInfoMinimal: TaskInfoMinimal{UUID: "task-1", State: state}}), nil
+	})
+	client, err := NewClient("https://example.test/scp-core", WithHTTPClient(&http.Client{Transport: transport}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task, err := client.WaitTask(context.Background(), "task-1", time.Nanosecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if task.State != "FINISHED" || len(states) != 0 {
+		t.Fatalf("task = %#v remaining states=%v", task, states)
 	}
 }
 
