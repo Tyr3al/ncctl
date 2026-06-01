@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ncserver` binary: a server-local CLI with a reduced command set scoped to the server it runs on
+- `ncserver identify`: detects the server by querying the SCP API for each local IP address; result is cached in the config file; accepts `--server-id` for manual override
+- `ncserver` commands: `status`, `failover list`, `failover route`, `rescue status/enable/disable`, `snapshots list/create`, `rdns get/set/delete`, `tasks wait`
+- `server_id` field in the config file, written by `ncserver identify`
+
+### Fixed
+
+- `version` command now reports the installed module version via `runtime/debug.ReadBuildInfo()`; prints `dev` in local builds
+- Nil task guard in `writeTasks` to match existing `writeTask` behaviour
+- Server resolution now matches by nickname in addition to name
+- `--timeout` now controls the overall operation deadline only; individual HTTP requests always time out after 30s, so `--wait` no longer requires a manual `--timeout` override
+
+### Added
+
+- GitHub Actions CI workflow running `go vet` and `go test` on push and pull requests
+
 ## [0.1.0] - 2026-06-01
 
 ### Added

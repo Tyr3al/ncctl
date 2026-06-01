@@ -14,6 +14,7 @@ Context for AI coding agents working on this repository.
 
 ```
 cmd/ncctl/          Entry point — calls cli.NewRootCommand().Execute()
+cmd/ncserver/       Entry point — calls cli.NewServerRootCommand().Execute()
 internal/
   cli/              All Cobra command definitions and CLI helpers
     root.go         Global flags, command tree wiring
@@ -24,6 +25,7 @@ internal/
                            image/ISO upload
     auth_commands.go       login, logout, whoami
     failover_route.go      failover route (multi-IP logic)
+    ncserver.go            NewServerRootCommand + all ncserver commands
     server_ref.go          resolveServerID — numeric ID or name lookup
     app.go                 newApp, apiClient, authClient, HTTPS validation
     context.go             commandOptions helper
@@ -31,7 +33,7 @@ internal/
     format.go              writeTable, writeJSON, stringPtrValue
     json_flags.go          parseJSONObject, parseJSONObjectFile, etc.
   config/
-    config.go       Load/Save/Remove config.json (refresh token + URLs)
+    config.go       Load/Save/Remove config.json (refresh token, URLs, ServerID)
 pkg/netcup/
   client.go         HTTP client, DoJSON, DoMergePatch, token injection
   auth.go           AuthClient — device flow, token refresh, UserInfo
@@ -51,6 +53,7 @@ docs/
 go build ./...
 go test ./...
 go install ./cmd/ncctl/
+go install ./cmd/ncserver/
 ```
 
 No code generation, no Makefile. All tests are pure Go unit/integration tests against in-process HTTP stubs.
@@ -60,7 +63,12 @@ No code generation, no Makefile. All tests are pure Go unit/integration tests ag
 ### Two-layer design
 
 1. **`pkg/netcup`** — a standalone Go library. No CLI concerns. Can be imported independently. All methods accept `context.Context` and return typed values or errors.
-2. **`internal/cli`** — thin Cobra wrappers that call the library, format output, and handle global flags.
+2. **`internal/cli`** — thin Cobra wrappers that call the library, format output, and handle global flags. Shared by both `ncctl` and `ncserver`.
+
+### Two binaries
+
+- **`ncctl`** — full admin CLI. Exposes the complete SCP API surface. Intended for operators.
+- **`ncserver`** — server-local CLI. Reduced command set scoped to the server it runs on. Identifies itself via IP address lookup (`identifyServerByIP`). The resolved server ID is stored as `server_id` in the config file. Intended to run on the server itself (e.g. keepalived scripts).
 
 ### HTTP client (`pkg/netcup/client.go`)
 
@@ -82,9 +90,12 @@ Written with `os.WriteFile(..., 0o600)` and parent directory `0o700`. Fields:
   "api_base_url": "...",
   "auth_base_url": "...",
   "user_id": 12345,
-  "refresh_token": "..."
+  "refresh_token": "...",
+  "server_id": 67890
 }
 ```
+
+`server_id` is written by `ncserver identify` and read by all ncserver commands. It is omitted from configs that have never been identified.
 
 Default path via `os.UserConfigDir()`: `~/.config/ncctl/config.json` (Linux), `~/Library/Application Support/ncctl/config.json` (macOS), `%AppData%\ncctl\config.json` (Windows).
 
