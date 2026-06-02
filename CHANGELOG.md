@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Rotated refresh tokens are now persisted to the config file after every API call, preventing authentication failures when the SCP auth server issues a new refresh token
+- Failover for IPv6 nets
 
 ## [0.1.0] - 2026-06-01
 

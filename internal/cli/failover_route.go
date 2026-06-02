@@ -124,14 +124,26 @@ func routeFailover(ctx context.Context, client *netcup.Client, userID int, famil
 		return client.RouteFailoverIPv4(ctx, userID, id, serverID)
 	case "v6":
 		if id == 0 {
-			found, err := client.ListFailoverIPv6(ctx, userID, netcup.ListFailoverOptions{IP: ip})
+			all, err := client.ListFailoverIPv6(ctx, userID, netcup.ListFailoverOptions{})
 			if err != nil {
 				return nil, err
 			}
-			if len(found) == 0 {
+			var match *netcup.FailoverIPv6
+			for i := range all {
+				f := &all[i]
+				cidr := f.NetworkPrefix
+				if f.NetworkPrefixLength != 0 {
+					cidr += "/" + strconv.Itoa(f.NetworkPrefixLength)
+				}
+				if f.NetworkPrefix == ip || cidr == ip {
+					match = f
+					break
+				}
+			}
+			if match == nil {
 				return nil, fmt.Errorf("no IPv6 failover IP found for %q", ip)
 			}
-			id = found[0].ID
+			id = match.ID
 		}
 		return client.RouteFailoverIPv6(ctx, userID, id, serverID)
 	default:
