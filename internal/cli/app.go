@@ -47,6 +47,16 @@ func (a *app) save() error {
 // from --timeout, which controls the overall operation deadline (e.g. a wait loop).
 const requestTimeout = 30 * time.Second
 
+// persistRefreshToken writes the current refresh token back to config when it
+// has changed — e.g. because Keycloak issued a new one during token rotation.
+// Errors are silently ignored; a stale token is still usable until it expires.
+func (a *app) persistRefreshToken(source *netcup.RefreshTokenSource) {
+	if token := source.RefreshToken(); token != a.cfg.Refresh {
+		a.cfg.Refresh = token
+		_ = a.save()
+	}
+}
+
 func (a *app) authClient() (*netcup.AuthClient, error) {
 	return netcup.NewAuthClient(a.cfg.AuthBaseURL, netcup.WithAuthHTTPClient(&http.Client{Timeout: requestTimeout}))
 }

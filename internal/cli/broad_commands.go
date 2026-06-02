@@ -20,7 +20,10 @@ func commandClient(cmd *cobra.Command, opts *options) (*netcup.Client, *netcup.R
 		return nil, nil, nil, nil, err
 	}
 	ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
-	return client, source, ctx, cancel, nil
+	return client, source, ctx, func() {
+		cancel()
+		a.persistRefreshToken(source)
+	}, nil
 }
 
 func writeTask(cmd *cobra.Command, opts *options, task *netcup.TaskInfo) error {
