@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Firewall commands: policy `list`/`get`/`create`/`update`/`delete` and interface `get`/`save`/`reapply`/`restore-copied`
 - Failover IP routing with `route` command; supports routing multiple IPs to a single destination in one invocation
 - rDNS management: `set` and `delete` for IPv4 and IPv6 addresses
-- Server name resolution: all commands accept either a numeric SCP ID or the server name shown in the web UI (e.g. `v2202508149564377314`)
+- Server name resolution: all commands accept either a numeric SCP ID or the server name shown in the web UI (e.g. `v2202501234567890123`)
 - `--json` flag for machine-readable output on all commands
 - `--yes` / `-y` flag to skip confirmation prompts on destructive operations
 - `--timeout` flag for configuring the overall operation deadline

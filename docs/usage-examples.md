@@ -19,7 +19,7 @@ Flags: `--limit N` (default 100)
 
 ```sh
 ncctl servers get 12345
-ncctl servers get v2202508149564377314
+ncctl servers get v2202501234567890123
 ```
 
 Returns full server details including live state (power, CPU, RAM).
@@ -29,10 +29,10 @@ Returns full server details including live state (power, CPU, RAM).
 Update one or more server attributes in a single call.
 
 ```sh
-ncctl servers update v2202508149564377314 --nickname main-leviathan
-ncctl servers update v2202508149564377314 --hostname web01.example.com
-ncctl servers update v2202508149564377314 --set-autostart --autostart
-ncctl servers update v2202508149564377314 --set-uefi --uefi=false
+ncctl servers update v2202501234567890123 --nickname main-leviathan
+ncctl servers update v2202501234567890123 --hostname web01.example.com
+ncctl servers update v2202501234567890123 --set-autostart --autostart
+ncctl servers update v2202501234567890123 --set-uefi --uefi=false
 ```
 
 Flags:
@@ -51,9 +51,9 @@ Flags:
 ### `servers power`
 
 ```sh
-ncctl servers power v2202508149564377314 ON
-ncctl servers power v2202508149564377314 OFF
-ncctl servers power v2202508149564377314 SUSPENDED
+ncctl servers power v2202501234567890123 ON
+ncctl servers power v2202501234567890123 OFF
+ncctl servers power v2202501234567890123 SUSPENDED
 ```
 
 Flags: `--state-option` — optional SCP state option passed to the API.
@@ -67,20 +67,20 @@ This is a risky operation and will ask for confirmation. Use `--yes` to skip.
 ### `interfaces list`
 
 ```sh
-ncctl interfaces list v2202508149564377314
+ncctl interfaces list v2202501234567890123
 ```
 
 ### `interfaces get`
 
 ```sh
-ncctl interfaces get v2202508149564377314 aa:bb:cc:dd:ee:ff
+ncctl interfaces get v2202501234567890123 aa:bb:cc:dd:ee:ff
 ```
 
 ### `interfaces create-vlan`
 
 ```sh
-ncctl interfaces create-vlan v2202508149564377314 --vlan-id 100
-ncctl interfaces create-vlan v2202508149564377314 --vlan-id 100 --driver VIRTIO
+ncctl interfaces create-vlan v2202501234567890123 --vlan-id 100
+ncctl interfaces create-vlan v2202501234567890123 --vlan-id 100 --driver VIRTIO
 ```
 
 Flags: `--vlan-id` (required), `--driver` (default `VIRTIO`)
@@ -88,7 +88,7 @@ Flags: `--vlan-id` (required), `--driver` (default `VIRTIO`)
 ### `interfaces update`
 
 ```sh
-ncctl interfaces update v2202508149564377314 aa:bb:cc:dd:ee:ff --driver E1000
+ncctl interfaces update v2202501234567890123 aa:bb:cc:dd:ee:ff --driver E1000
 ```
 
 Flags: `--driver` (required)
@@ -96,7 +96,7 @@ Flags: `--driver` (required)
 ### `interfaces delete`
 
 ```sh
-ncctl --yes interfaces delete v2202508149564377314 aa:bb:cc:dd:ee:ff
+ncctl --yes interfaces delete v2202501234567890123 aa:bb:cc:dd:ee:ff
 ```
 
 Risky — requires confirmation.
@@ -111,7 +111,7 @@ Risky — requires confirmation.
 ncctl failover list
 ncctl failover list --family v4
 ncctl failover list --family v6
-ncctl failover list --server-id v2202508149564377314
+ncctl failover list --server-id v2202501234567890123
 ncctl failover list --ip 203.0.113.10
 ```
 
@@ -124,15 +124,15 @@ Route one or more failover IPs to a server. The IP family is inferred automatica
 Route by IP address:
 
 ```sh
-ncctl failover route --server-id v2202508149564377314 --ip 203.0.113.10
-ncctl failover route --server-id v2202508149564377314 --ip 2001:db8::/64
+ncctl failover route --server-id v2202501234567890123 --ip 203.0.113.10
+ncctl failover route --server-id v2202501234567890123 --ip 2001:db8::/64
 ```
 
 Route multiple IPs in one command:
 
 ```sh
 ncctl --timeout 2m failover route \
-  --server-id v2202508149564377314 \
+  --server-id v2202501234567890123 \
   --ip 203.0.113.10 \
   --ip 2001:db8::/64 \
   --wait
@@ -225,20 +225,20 @@ ncctl rdns delete 2001:db8::1
 ### `snapshots list`
 
 ```sh
-ncctl snapshots list v2202508149564377314
+ncctl snapshots list v2202501234567890123
 ```
 
 ### `snapshots get`
 
 ```sh
-ncctl snapshots get v2202508149564377314 before-upgrade
+ncctl snapshots get v2202501234567890123 before-upgrade
 ```
 
 ### `snapshots create`
 
 ```sh
-ncctl snapshots create v2202508149564377314 before-upgrade
-ncctl snapshots create v2202508149564377314 before-upgrade --online
+ncctl snapshots create v2202501234567890123 before-upgrade
+ncctl snapshots create v2202501234567890123 before-upgrade --online
 ```
 
 Flags: `--online` — create a snapshot while the server is running.
@@ -248,7 +248,7 @@ Flags: `--online` — create a snapshot while the server is running.
 Check whether creating a snapshot is possible without actually creating one:
 
 ```sh
-ncctl snapshots dryrun v2202508149564377314
+ncctl snapshots dryrun v2202501234567890123
 ```
 
 Flags: `--body`, `--body-file`
@@ -256,7 +256,7 @@ Flags: `--body`, `--body-file`
 ### `snapshots revert`
 
 ```sh
-ncctl --yes snapshots revert v2202508149564377314 before-upgrade
+ncctl --yes snapshots revert v2202501234567890123 before-upgrade
 ```
 
 Risky — requires confirmation.
@@ -264,13 +264,13 @@ Risky — requires confirmation.
 ### `snapshots export`
 
 ```sh
-ncctl snapshots export v2202508149564377314 before-upgrade
+ncctl snapshots export v2202501234567890123 before-upgrade
 ```
 
 ### `snapshots delete`
 
 ```sh
-ncctl --yes snapshots delete v2202508149564377314 before-upgrade
+ncctl --yes snapshots delete v2202501234567890123 before-upgrade
 ```
 
 Risky — requires confirmation.
@@ -282,13 +282,13 @@ Risky — requires confirmation.
 ### `rescue status`
 
 ```sh
-ncctl rescue status v2202508149564377314
+ncctl rescue status v2202501234567890123
 ```
 
 ### `rescue enable`
 
 ```sh
-ncctl --yes rescue enable v2202508149564377314
+ncctl --yes rescue enable v2202501234567890123
 ```
 
 Risky — requires confirmation.
@@ -296,7 +296,7 @@ Risky — requires confirmation.
 ### `rescue disable`
 
 ```sh
-ncctl --yes rescue disable v2202508149564377314
+ncctl --yes rescue disable v2202501234567890123
 ```
 
 Risky — requires confirmation.
@@ -308,26 +308,26 @@ Risky — requires confirmation.
 ### `disks list`
 
 ```sh
-ncctl disks list v2202508149564377314
+ncctl disks list v2202501234567890123
 ```
 
 ### `disks get`
 
 ```sh
-ncctl disks get v2202508149564377314 vda
+ncctl disks get v2202501234567890123 vda
 ```
 
 ### `disks supported-drivers`
 
 ```sh
-ncctl disks supported-drivers v2202508149564377314
+ncctl disks supported-drivers v2202501234567890123
 ```
 
 ### `disks set-driver`
 
 ```sh
-ncctl --yes disks set-driver v2202508149564377314 --body '{"disks":[{"name":"vda","driver":"VIRTIO"}]}'
-ncctl --yes disks set-driver v2202508149564377314 --body-file driver-config.json
+ncctl --yes disks set-driver v2202501234567890123 --body '{"disks":[{"name":"vda","driver":"VIRTIO"}]}'
+ncctl --yes disks set-driver v2202501234567890123 --body-file driver-config.json
 ```
 
 Flags: `--body`, `--body-file`
@@ -339,7 +339,7 @@ Risky — requires confirmation.
 Destroys all data on the disk.
 
 ```sh
-ncctl --yes disks format v2202508149564377314 vda
+ncctl --yes disks format v2202501234567890123 vda
 ```
 
 Risky — requires confirmation.
@@ -353,7 +353,7 @@ Risky — requires confirmation.
 Show the currently attached ISO:
 
 ```sh
-ncctl iso attached v2202508149564377314
+ncctl iso attached v2202501234567890123
 ```
 
 ### `iso list`
@@ -361,15 +361,15 @@ ncctl iso attached v2202508149564377314
 List ISO images available for this server:
 
 ```sh
-ncctl iso list v2202508149564377314
+ncctl iso list v2202501234567890123
 ```
 
 ### `iso attach`
 
 ```sh
-ncctl iso attach v2202508149564377314 --iso-id 42
-ncctl iso attach v2202508149564377314 --user-iso my-image.iso
-ncctl iso attach v2202508149564377314 --iso-id 42 --boot-cdrom
+ncctl iso attach v2202501234567890123 --iso-id 42
+ncctl iso attach v2202501234567890123 --user-iso my-image.iso
+ncctl iso attach v2202501234567890123 --iso-id 42 --boot-cdrom
 ```
 
 Flags: `--iso-id`, `--user-iso`, `--boot-cdrom`
@@ -377,7 +377,7 @@ Flags: `--iso-id`, `--user-iso`, `--boot-cdrom`
 ### `iso detach`
 
 ```sh
-ncctl --yes iso detach v2202508149564377314
+ncctl --yes iso detach v2202501234567890123
 ```
 
 Risky — requires confirmation.
@@ -427,7 +427,7 @@ Risky — requires confirmation.
 ### `firewall interface get`
 
 ```sh
-ncctl firewall interface get v2202508149564377314 aa:bb:cc:dd:ee:ff
+ncctl firewall interface get v2202501234567890123 aa:bb:cc:dd:ee:ff
 ```
 
 ### `firewall interface save`
@@ -435,9 +435,9 @@ ncctl firewall interface get v2202508149564377314 aa:bb:cc:dd:ee:ff
 Configure the firewall for a specific interface:
 
 ```sh
-ncctl --yes firewall interface save v2202508149564377314 aa:bb:cc:dd:ee:ff \
+ncctl --yes firewall interface save v2202501234567890123 aa:bb:cc:dd:ee:ff \
   --body '{"inboundRules":[],"outboundRules":[]}'
-ncctl --yes firewall interface save v2202508149564377314 aa:bb:cc:dd:ee:ff \
+ncctl --yes firewall interface save v2202501234567890123 aa:bb:cc:dd:ee:ff \
   --body-file interface-firewall.json
 ```
 
@@ -446,7 +446,7 @@ Flags: `--body`, `--body-file`. Risky — requires confirmation.
 ### `firewall interface reapply`
 
 ```sh
-ncctl --yes firewall interface reapply v2202508149564377314 aa:bb:cc:dd:ee:ff
+ncctl --yes firewall interface reapply v2202501234567890123 aa:bb:cc:dd:ee:ff
 ```
 
 Risky — requires confirmation.
@@ -454,7 +454,7 @@ Risky — requires confirmation.
 ### `firewall interface restore-copied`
 
 ```sh
-ncctl --yes firewall interface restore-copied v2202508149564377314 aa:bb:cc:dd:ee:ff
+ncctl --yes firewall interface restore-copied v2202501234567890123 aa:bb:cc:dd:ee:ff
 ```
 
 Risky — requires confirmation.
@@ -501,8 +501,8 @@ Additional per-server operations that don't fit under `servers`.
 ### `server logs`
 
 ```sh
-ncctl server logs v2202508149564377314
-ncctl server logs v2202508149564377314 --limit 50 --offset 100
+ncctl server logs v2202501234567890123
+ncctl server logs v2202501234567890123 --limit 50 --offset 100
 ```
 
 Flags: `--limit` (default 100), `--offset` (default 0)
@@ -512,11 +512,11 @@ Flags: `--limit` (default 100), `--offset` (default 0)
 Available metric types: `cpu`, `disk`, `network`, `network-packet`
 
 ```sh
-ncctl server metrics cpu v2202508149564377314
-ncctl server metrics cpu v2202508149564377314 --hours 6
-ncctl server metrics disk v2202508149564377314
-ncctl server metrics network v2202508149564377314
-ncctl server metrics network-packet v2202508149564377314
+ncctl server metrics cpu v2202501234567890123
+ncctl server metrics cpu v2202501234567890123 --hours 6
+ncctl server metrics disk v2202501234567890123
+ncctl server metrics network v2202501234567890123
+ncctl server metrics network-packet v2202501234567890123
 ```
 
 Flags: `--hours` (default 24)
@@ -524,19 +524,19 @@ Flags: `--hours` (default 24)
 ### `server guest-agent`
 
 ```sh
-ncctl server guest-agent v2202508149564377314
+ncctl server guest-agent v2202501234567890123
 ```
 
 ### `server guest-agent-status`
 
 ```sh
-ncctl server guest-agent-status v2202508149564377314
+ncctl server guest-agent-status v2202501234567890123
 ```
 
 ### `server gpu-driver`
 
 ```sh
-ncctl server gpu-driver v2202508149564377314
+ncctl server gpu-driver v2202501234567890123
 ```
 
 ### `server image flavours`
@@ -544,7 +544,7 @@ ncctl server gpu-driver v2202508149564377314
 List available image flavours for a server:
 
 ```sh
-ncctl server image flavours v2202508149564377314
+ncctl server image flavours v2202501234567890123
 ```
 
 ### `server image setup`
@@ -552,7 +552,7 @@ ncctl server image flavours v2202508149564377314
 Install an OS image. Destroys the current disk contents.
 
 ```sh
-ncctl --yes server image setup v2202508149564377314 --body-file image-setup.json
+ncctl --yes server image setup v2202501234567890123 --body-file image-setup.json
 ```
 
 Flags: `--body`, `--body-file`. Risky — requires confirmation.
@@ -562,7 +562,7 @@ Flags: `--body`, `--body-file`. Risky — requires confirmation.
 Install a user-provided image:
 
 ```sh
-ncctl --yes server image setup-user v2202508149564377314 --body-file user-image-setup.json
+ncctl --yes server image setup-user v2202501234567890123 --body-file user-image-setup.json
 ```
 
 Flags: `--body`, `--body-file`. Risky — requires confirmation.
@@ -570,9 +570,9 @@ Flags: `--body`, `--body-file`. Risky — requires confirmation.
 ### `server storage-optimization`
 
 ```sh
-ncctl --yes server storage-optimization v2202508149564377314
-ncctl --yes server storage-optimization v2202508149564377314 --disk vda --disk vdb
-ncctl --yes server storage-optimization v2202508149564377314 --start-after
+ncctl --yes server storage-optimization v2202501234567890123
+ncctl --yes server storage-optimization v2202501234567890123 --disk vda --disk vdb
+ncctl --yes server storage-optimization v2202501234567890123 --start-after
 ```
 
 Flags: `--disk` (repeat for multiple disks), `--start-after` (start server after optimization)
@@ -634,7 +634,7 @@ Risky — requires confirmation.
 
 ```sh
 ncctl user vlans list
-ncctl user vlans list --server-id v2202508149564377314
+ncctl user vlans list --server-id v2202501234567890123
 ```
 
 Flags: `--server-id`
@@ -709,8 +709,8 @@ ncctl --json failover list --family v4
 Use `--yes` to suppress confirmation prompts for scripts where the surrounding context is already safe:
 
 ```sh
-ncctl --yes snapshots delete v2202508149564377314 before-upgrade
-ncctl --yes disks format v2202508149564377314 vda
+ncctl --yes snapshots delete v2202501234567890123 before-upgrade
+ncctl --yes disks format v2202501234567890123 vda
 ```
 
 ### keepalived integration
@@ -723,7 +723,7 @@ set -eu
 
 NCCTL=/usr/local/bin/ncctl
 CONFIG=/etc/ncctl/config.json
-SERVER=v2202508149564377314
+SERVER=v2202501234567890123
 
 exec "$NCCTL" \
   --config "$CONFIG" \

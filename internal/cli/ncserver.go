@@ -132,7 +132,7 @@ saved to the config file and used by all other ncserver commands.
 
 If auto-detection fails, provide the server ID or name explicitly:
 
-  ncserver identify --server-id v2202508149564377314`,
+  ncserver identify --server-id v2202501234567890123`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			opts, _ := commandOptions(cmd)
 			a, err := newApp(opts)

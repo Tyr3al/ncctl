@@ -80,7 +80,7 @@ Both base URLs must use `https`. HTTP URLs are rejected to prevent token exposur
 Every command that takes a `<server>` argument accepts either:
 
 - The **numeric SCP ID** (e.g. `12345`)
-- The **server name** as shown in the web UI (e.g. `v2202508149564377314`)
+- The **server name** as shown in the web UI (e.g. `v2202501234567890123`)
 
 The same applies to `--server-id` flags.
 
@@ -128,7 +128,7 @@ systemctl enable --now ncserver-token-renew.timer
 If auto-detection fails (e.g. the server's IP is not yet registered):
 
 ```sh
-ncserver identify --server-id v2202508149564377314
+ncserver identify --server-id v2202501234567890123
 ```
 
 **Available commands:** `login`, `logout`, `whoami`, `identify`, `status`, `failover list`, `failover route`, `rescue status/enable/disable`, `snapshots list/create`, `rdns get/set/delete`, `tasks wait`
