@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- `server` `power` commands, now support lower case actions
+### Fixed
+- `server power` commands, now support lower case actions
+- `interfaces create-vlan` and `interfaces update` now accept lowercase `--driver` values (e.g. `virtio`)
 
 ## [0.2.0] - 2026-06-02
 
@@ -18,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Rotated refresh tokens are now persisted to the config file after every API call, preventing authentication failures when the SCP auth server issues a new refresh token
-- Failover for IPv6 nets
+- `failover route --ip` now correctly matches IPv6 CIDR prefixes (e.g. `2a03:4000:20:175::/64`) via client-side lookup instead of an unsupported API filter
 
 ## [0.1.0] - 2026-06-01
 

@@ -133,7 +133,7 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			vlanID, _ := cmd.Flags().GetInt("vlan-id")
-			driver, _ := cmd.Flags().GetString("driver")
+			driver := strings.ToUpper(cmd.Flag("driver").Value.String())
 			opts, _ := commandOptions(cmd)
 			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
@@ -156,7 +156,7 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 		Short: "Update an interface",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			driver, _ := cmd.Flags().GetString("driver")
+			driver := strings.ToUpper(cmd.Flag("driver").Value.String())
 			opts, _ := commandOptions(cmd)
 			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
