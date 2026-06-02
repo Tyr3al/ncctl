@@ -41,6 +41,7 @@ to managing the server it runs on. Use ncctl for full administrative access.`,
 		newLoginCommand(),
 		newLogoutCommand(),
 		newWhoamiCommand(),
+		newRenewCommand(),
 		newIdentifyCommand(),
 		newSelfStatusCommand(),
 		newSelfFailoverCommand(),
@@ -62,12 +63,60 @@ func selfCommandClient(cmd *cobra.Command, opts *options) (*app, *netcup.Client,
 	if a.cfg.ServerID == 0 {
 		return nil, nil, nil, nil, 0, fmt.Errorf("server not identified; run: ncserver identify")
 	}
-	client, _, err := a.apiClient()
+	client, source, err := a.apiClient()
 	if err != nil {
 		return nil, nil, nil, nil, 0, err
 	}
 	ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
-	return a, client, ctx, cancel, a.cfg.ServerID, nil
+	return a, client, ctx, func() {
+		cancel()
+		a.persistRefreshToken(source)
+	}, a.cfg.ServerID, nil
+}
+
+// newRenewCommand forces a token refresh and persists the updated refresh token.
+// It should be run periodically to prevent the offline token from expiring.
+func newRenewCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "renew",
+		Short: "Refresh and persist the stored token",
+		Long: `Forces a token refresh and writes the updated refresh token to the config file.
+
+Offline tokens issued by the SCP auth server expire after a period of inactivity
+(typically 30 days). Run this command weekly via the ncserver-token-renew systemd
+timer to keep the token alive.`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			opts, _ := commandOptions(cmd)
+			a, err := newApp(opts)
+			if err != nil {
+				return err
+			}
+			if a.cfg.Refresh == "" {
+				return fmt.Errorf("not logged in; run: ncserver login")
+			}
+			auth, err := a.authClient()
+			if err != nil {
+				return err
+			}
+			source := netcup.NewRefreshTokenSource(auth, a.cfg.Refresh)
+			ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
+			defer cancel()
+			if _, err := source.Token(ctx); err != nil {
+				return fmt.Errorf("token refresh failed: %w", err)
+			}
+			newToken := source.RefreshToken()
+			if newToken != a.cfg.Refresh {
+				a.cfg.Refresh = newToken
+				if err := a.save(); err != nil {
+					return fmt.Errorf("save config: %w", err)
+				}
+				fmt.Fprintln(cmd.OutOrStdout(), "Token refreshed and saved.")
+			} else {
+				fmt.Fprintln(cmd.OutOrStdout(), "Token refreshed.")
+			}
+			return nil
+		},
+	}
 }
 
 // newIdentifyCommand queries the SCP API to find this server by matching its

@@ -115,6 +115,16 @@ ncserver login          # authenticate and store refresh token
 ncserver identify       # detect this server by IP, cache its ID
 ```
 
+**Keep the token alive:**
+
+The SCP offline token expires after ~30 days without use. Install the provided systemd units to renew it weekly:
+
+```sh
+cp contrib/systemd/ncserver-token-renew.{service,timer} /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now ncserver-token-renew.timer
+```
+
 If auto-detection fails (e.g. the server's IP is not yet registered):
 
 ```sh

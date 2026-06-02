@@ -525,12 +525,15 @@ func appClientFromCommand(cmd *cobra.Command) (*app, *netcup.Client, context.Con
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	client, _, err := a.apiClient()
+	client, source, err := a.apiClient()
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
-	return a, client, ctx, cancel, nil
+	return a, client, ctx, func() {
+		cancel()
+		a.persistRefreshToken(source)
+	}, nil
 }
 
 func parseBodyFlags(raw, path string) (map[string]any, error) {

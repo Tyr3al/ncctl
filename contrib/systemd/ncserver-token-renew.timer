@@ -1,0 +1,15 @@
+[Unit]
+Description=ncserver token renewal (weekly)
+After=network-online.target
+
+[Timer]
+# Run once a week — well within the 30-day offline token expiry window.
+OnCalendar=weekly
+# Spread runs across a 1-hour window so multiple servers don't all hit the
+# auth server at the same second after a reboot.
+RandomizedDelaySec=1h
+# If the system was off when the timer was supposed to fire, run on next boot.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

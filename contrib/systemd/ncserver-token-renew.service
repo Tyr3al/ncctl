@@ -1,0 +1,12 @@
+[Unit]
+Description=ncserver token renewal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ncserver --config /etc/ncserver/config.json renew
+# Retry once on failure to handle transient network errors
+Restart=on-failure
+RestartSec=60
+StartLimitBurst=2
