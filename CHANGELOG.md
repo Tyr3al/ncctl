@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2026-06-02
 
 ### Added
 - `ncserver renew`: forces a token refresh and persists the updated refresh token to disk; prevents offline token expiry from inactivity
