@@ -111,8 +111,8 @@ A full command reference with examples is in [docs/usage-examples.md](docs/usage
 **Setup** (run once, typically during provisioning):
 
 ```sh
-ncserver login          # authenticate and store refresh token
-ncserver identify       # detect this server by IP, cache its ID
+ncserver --config /etc/ncserver/config.json login          # authenticate and store refresh token
+ncserver --config /etc/ncserver/config.json identify       # detect this server by IP, cache its ID
 ```
 
 **Keep the token alive:**
@@ -128,7 +128,7 @@ systemctl enable --now ncserver-token-renew.timer
 If auto-detection fails (e.g. the server's IP is not yet registered):
 
 ```sh
-ncserver identify --server-id v2202501234567890123
+ncserver --config /etc/ncserver/config.json identify --server-id v2202501234567890123
 ```
 
 **Available commands:** `login`, `logout`, `whoami`, `identify`, `status`, `failover list`, `failover route`, `rescue status/enable/disable`, `snapshots list/create`, `rdns get/set/delete`, `tasks wait`

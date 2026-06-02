@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Update documentation for `ncserver`
+
 ### Fixed
 - `server power` commands, now support lower case actions
 - `interfaces create-vlan` and `interfaces update` now accept lowercase `--driver` values (e.g. `virtio`)
