@@ -99,12 +99,24 @@ jobs:
         working-directory: dist
         run: sha256sum * > checksums.txt
 
+      - name: Extract changelog section
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_BARE="${VERSION#v}"
+          # Use index() for plain-string matching to avoid regex issues with dots and brackets
+          awk -v ver="## [${VERSION_BARE}]" \
+            'index($0, ver) == 1 {found=1; next} found && /^## \[/{exit} found && /^\[.*\]:/{exit} found{print}' \
+            CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "See [CHANGELOG.md](CHANGELOG.md) for details." > release-notes.md
+          fi
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           draft: ${{ github.event_name == 'workflow_dispatch' }}
-          generate_release_notes: true
+          body_path: release-notes.md
           files: |
             dist/*
