@@ -1,4 +1,4 @@
-# Command Reference
+# ncctl Command Reference
 
 Full reference for all `ncctl` commands with examples.
 
@@ -10,7 +10,6 @@ Print the semantic version, commit hash, and build date:
 
 ```sh
 ncctl version
-ncserver version
 ```
 
 Example output:

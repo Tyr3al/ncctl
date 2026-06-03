@@ -86,7 +86,7 @@ The same applies to `--server-id` flags.
 
 ## Command Reference
 
-A full command reference with examples is in [docs/usage-examples.md](docs/usage-examples.md).
+A full command reference with examples is in [docs/ncctl.md](docs/ncctl.md).
 
 | Command group | What it manages |
 |---------------|----------------|
@@ -106,7 +106,7 @@ A full command reference with examples is in [docs/usage-examples.md](docs/usage
 
 ## ncserver
 
-`ncserver` is a companion binary for installation on netcup servers. It exposes a reduced command set scoped to the server it runs on and identifies itself automatically via the SCP API.
+`ncserver` is a companion binary for installation on netcup servers. It exposes a reduced command set scoped to the server it runs on and identifies itself automatically via the SCP API. See [docs/ncserver.md](docs/ncserver.md) for the full command reference.
 
 **Setup** (run once, typically during provisioning):
 

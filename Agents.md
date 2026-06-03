@@ -44,7 +44,8 @@ pkg/netcup/
 assets/
   netcup-openapi-260601.json   Official SCP OpenAPI spec (reference)
 docs/
-  usage-examples.md   Full command reference
+  ncctl.md     Full ncctl command reference
+  ncserver.md  Full ncserver command reference
 ```
 
 ## Build & Test
