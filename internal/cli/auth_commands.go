@@ -107,8 +107,10 @@ func newWhoamiCommand() *cobra.Command {
 			if opts.JSON {
 				return writeJSON(cmd.OutOrStdout(), info)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "ID\tUSERNAME\tEMAIL\n%s\t%s\t%s\n", info.ID, info.Username, info.Email)
-			return nil
+			return writeTable(cmd.OutOrStdout(),
+				[]string{"ID", "USERNAME", "EMAIL"},
+				[][]string{{info.ID, info.Username, info.Email}},
+			)
 		},
 	}
 }
