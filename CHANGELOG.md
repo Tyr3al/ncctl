@@ -5,16 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0]
+## [0.3.0] - Unreleased
 
 ### Added
 - `version` command for both `ncctl` and `ncserver`: prints the semantic version, commit hash, and build date; build-time values are injected via `-ldflags` and fall back to embedded VCS info when built from source
 
 ### Changed
 - Update documentation for `ncserver`
+- Split documentation for `ncctl` and `nccserver`
 
 ### Fixed
-- `server power` commands, now support lower case actions
+- `servers power` commands, now support lower case value (e.g. `on`, `off`)
 - `interfaces create-vlan` and `interfaces update` now accept lowercase `--driver` values (e.g. `virtio`)
 
 ## [0.2.0] - 2026-06-02
