@@ -54,12 +54,17 @@ jobs:
           CGO_ENABLED: "0"
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          SHORT_COMMIT="${GITHUB_SHA:0:7}"
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          PKG="github.com/tyr3al/ncctl/internal/cli"
           EXT=""
           [ "$GOOS" = "windows" ] && EXT=".exe"
 
           for cmd in ncctl ncserver; do
             out="${cmd}-${VERSION}-${GOOS}-${GOARCH}${EXT}"
-            go build -trimpath -ldflags="-s -w" -o "dist/${out}" "./cmd/${cmd}"
+            go build -trimpath \
+              -ldflags="-s -w -X ${PKG}.version=${VERSION} -X ${PKG}.commit=${SHORT_COMMIT} -X ${PKG}.buildDate=${BUILD_DATE}" \
+              -o "dist/${out}" "./cmd/${cmd}"
           done
 
       - name: Upload artifacts

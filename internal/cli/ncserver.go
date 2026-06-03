@@ -38,6 +38,7 @@ to managing the server it runs on. Use ncctl for full administrative access.`,
 
 	attachOptions(cmd, opts)
 	cmd.AddCommand(
+		newVersionCommand(),
 		newLoginCommand(),
 		newLogoutCommand(),
 		newWhoamiCommand(),

@@ -4,6 +4,27 @@ Full reference for all `ncctl` commands with examples.
 
 ---
 
+## version
+
+Print the semantic version, commit hash, and build date:
+
+```sh
+ncctl version
+ncserver version
+```
+
+Example output:
+
+```
+ncctl v0.3.0
+commit: 2311e32
+built:  2026-06-03T10:00:00Z
+```
+
+Unversioned local builds show `dev` and include VCS info when the working tree is clean.
+
+---
+
 ## servers
 
 ### `servers list`

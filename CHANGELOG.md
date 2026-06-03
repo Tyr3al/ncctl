@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0]
+
+### Added
+- `version` command for both `ncctl` and `ncserver`: prints the semantic version, commit hash, and build date; build-time values are injected via `-ldflags` and fall back to embedded VCS info when built from source
 
 ### Changed
 - Update documentation for `ncserver`
