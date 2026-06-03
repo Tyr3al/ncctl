@@ -49,6 +49,40 @@ func TestDeviceAuthorizationAndPollingErrors(t *testing.T) {
 	}
 }
 
+func TestRevokeToken(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		auth, err := NewAuthClient("https://auth.example.test", WithAuthHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+			if r.URL.Path != "/realms/scp/protocol/openid-connect/revoke" {
+				t.Fatalf("unexpected path %s", r.URL.Path)
+			}
+			body, _ := io.ReadAll(r.Body)
+			bs := string(body)
+			if !strings.Contains(bs, "token=mytoken") || !strings.Contains(bs, "client_id=scp") {
+				t.Fatalf("unexpected body %q", bs)
+			}
+			return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+		})}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := auth.RevokeToken(context.Background(), "mytoken"); err != nil {
+			t.Fatalf("RevokeToken() error = %v", err)
+		}
+	})
+
+	t.Run("server error", func(t *testing.T) {
+		auth, err := NewAuthClient("https://auth.example.test", WithAuthHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+			return jsonResponse(http.StatusBadRequest, map[string]string{"error": "invalid_token", "error_description": "Token not active"}), nil
+		})}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := auth.RevokeToken(context.Background(), "badtoken"); err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+}
+
 func TestRefreshTokenSourceCachesAccessToken(t *testing.T) {
 	var refreshes int
 	auth, err := NewAuthClient("https://auth.example.test", WithAuthHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {

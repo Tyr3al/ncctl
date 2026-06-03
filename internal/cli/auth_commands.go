@@ -64,9 +64,18 @@ func newLoginCommand() *cobra.Command {
 func newLogoutCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "logout",
-		Short: "Remove stored ncctl credentials",
+		Short: "Remove stored credentials and revoke the server-side token",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			opts, _ := commandOptions(cmd)
+			if a, err := newApp(opts); err == nil && a.cfg.Refresh != "" {
+				if authClient, err := a.authClient(); err == nil {
+					ctx, cancel := contextWithTimeout(cmd.Context(), opts.Timeout)
+					defer cancel()
+					if err := authClient.RevokeToken(ctx, a.cfg.Refresh); err != nil {
+						fmt.Fprintf(cmd.ErrOrStderr(), "warning: server-side token revocation failed: %v\n", err)
+					}
+				}
+			}
 			if err := config.Remove(opts.ConfigPath); err != nil {
 				return err
 			}

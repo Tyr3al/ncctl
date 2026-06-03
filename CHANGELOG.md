@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `logout` now revokes the refresh token on the authorization server (RFC 7009) before removing local credentials; revocation failure prints a warning but does not block the local logout
+
 ### Fixed
 - `whoami` table output now aligns columns correctly
 

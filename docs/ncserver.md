@@ -56,11 +56,21 @@ Authenticate using the OAuth2 Device Authorization Grant. No password is ever st
 
 ```sh
 ncserver login
-ncserver logout
+```
+
+`login` prints a verification URL and a short user code. Open the URL in a browser, approve the request, and `ncserver` will store the refresh token locally.
+
+```sh
 ncserver whoami
 ```
 
-`login` prints a verification URL and short user code. Open the URL in a browser, approve the request, and `ncserver` will store the refresh token.
+Print the currently authenticated user's ID, username, and email.
+
+```sh
+ncserver logout
+```
+
+Revokes the refresh token on the authorization server and removes the local credentials. Revocation invalidates the token server-side so it cannot be used from other devices. If the revocation request fails (e.g. no network), a warning is printed but the local credentials are still removed.
 
 ---
 

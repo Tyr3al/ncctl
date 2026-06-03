@@ -4,6 +4,30 @@ Full reference for all `ncctl` commands with examples.
 
 ---
 
+## login / logout / whoami
+
+Authenticate using the OAuth2 Device Authorization Grant. No password is ever stored — only a refresh token.
+
+```sh
+ncctl login
+```
+
+`login` prints a verification URL and a short user code. Open the URL in a browser, approve the request, and `ncctl` will store the refresh token locally.
+
+```sh
+ncctl whoami
+```
+
+Print the currently authenticated user's ID, username, and email.
+
+```sh
+ncctl logout
+```
+
+Revokes the refresh token on the authorization server and removes the local credentials. Revocation invalidates the token server-side so it cannot be used from other devices. If the revocation request fails (e.g. no network), a warning is printed but the local credentials are still removed.
+
+---
+
 ## version
 
 Print the semantic version, commit hash, and build date:

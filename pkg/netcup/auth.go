@@ -144,6 +144,36 @@ func (c *AuthClient) RefreshToken(ctx context.Context, refreshToken string) (*To
 	return &out, nil
 }
 
+func (c *AuthClient) RevokeToken(ctx context.Context, token string) error {
+	values := url.Values{}
+	values.Set("client_id", c.clientID)
+	values.Set("token", token)
+	values.Set("token_type_hint", "refresh_token")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		c.resolve("/realms/scp/protocol/openid-connect/revoke").String(),
+		strings.NewReader(values.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+	data, _ := io.ReadAll(resp.Body)
+	var tokenErr tokenError
+	if len(data) > 0 {
+		_ = json.Unmarshal(data, &tokenErr)
+	}
+	tokenErr.StatusCode = resp.StatusCode
+	tokenErr.Status = resp.Status
+	return &tokenErr
+}
+
 func (c *AuthClient) UserInfo(ctx context.Context, accessToken string) (*UserInfo, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.resolve("/realms/scp/protocol/openid-connect/userinfo").String(), nil)
 	if err != nil {

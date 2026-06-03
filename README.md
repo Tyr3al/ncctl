@@ -54,11 +54,13 @@ Check who is currently logged in:
 ncctl whoami
 ```
 
-Remove stored credentials:
+Remove stored credentials and revoke the token on the authorization server:
 
 ```sh
 ncctl logout
 ```
+
+Revocation invalidates the refresh token server-side so it cannot be used on other devices. If the revocation request fails (e.g. no network), a warning is printed but the local credentials are still removed.
 
 ## Global Flags
 
