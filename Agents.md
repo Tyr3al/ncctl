@@ -44,7 +44,8 @@ pkg/netcup/
 assets/
   netcup-openapi-260601.json   Official SCP OpenAPI spec (reference)
 docs/
-  usage-examples.md   Full command reference
+  ncctl.md     Full ncctl command reference
+  ncserver.md  Full ncserver command reference
 ```
 
 ## Build & Test
@@ -101,7 +102,7 @@ Default path via `os.UserConfigDir()`: `~/.config/ncctl/config.json` (Linux), `~
 
 ### Server reference resolution (`internal/cli/server_ref.go`)
 
-`resolveServerID(ctx, client, ref)` accepts either a numeric string (`"12345"`) or a server name as shown in the netcup UI (`"v2202508149564377314"`). Name lookup calls `ListServers` with a name filter and matches exactly. Returns an error if ambiguous or not found.
+`resolveServerID(ctx, client, ref)` accepts either a numeric string (`"12345"`) or a server name as shown in the netcup UI (`"v2202501234567890123"`). Name lookup calls `ListServers` with a name filter and matches exactly. Returns an error if ambiguous or not found.
 
 ### Async tasks
 

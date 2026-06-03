@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-03
+
+### Added
+- `version` command for both `ncctl` and `ncserver`: prints the semantic version, commit hash, and build date; build-time values are injected via `-ldflags` and fall back to embedded VCS info when built from source
+
+### Changed
+- Update documentation for `ncserver`
+- Split documentation for `ncctl` and `nccserver`
+
+### Fixed
+- `servers power` commands, now support lower case value (e.g. `on`, `off`)
+- `interfaces create-vlan` and `interfaces update` now accept lowercase `--driver` values (e.g. `virtio`)
+
 ## [0.2.0] - 2026-06-02
 
 ### Added
@@ -15,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Rotated refresh tokens are now persisted to the config file after every API call, preventing authentication failures when the SCP auth server issues a new refresh token
-- Failover for IPv6 nets
+- `failover route --ip` now correctly matches IPv6 CIDR prefixes (e.g. `2a03:4000:20:175::/64`) via client-side lookup instead of an unsupported API filter
 
 ## [0.1.0] - 2026-06-01
 
@@ -33,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Firewall commands: policy `list`/`get`/`create`/`update`/`delete` and interface `get`/`save`/`reapply`/`restore-copied`
 - Failover IP routing with `route` command; supports routing multiple IPs to a single destination in one invocation
 - rDNS management: `set` and `delete` for IPv4 and IPv6 addresses
-- Server name resolution: all commands accept either a numeric SCP ID or the server name shown in the web UI (e.g. `v2202508149564377314`)
+- Server name resolution: all commands accept either a numeric SCP ID or the server name shown in the web UI (e.g. `v2202501234567890123`)
 - `--json` flag for machine-readable output on all commands
 - `--yes` / `-y` flag to skip confirmation prompts on destructive operations
 - `--timeout` flag for configuring the overall operation deadline
@@ -41,5 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apache 2.0 license
 
 [Unreleased]: https://github.com/Tyr3al/ncctl/compare/v0.2.0...HEAD
+[0.3.0]: https://github.com/Tyr3al/ncctl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Tyr3al/ncctl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Tyr3al/ncctl/releases/tag/v0.1.0

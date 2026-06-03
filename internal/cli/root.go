@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"runtime/debug"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -67,11 +66,7 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Print version information",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			v := "dev"
-			if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
-				v = info.Main.Version
-			}
-			_, err := fmt.Fprintln(cmd.OutOrStdout(), "ncctl "+v)
+			_, err := fmt.Fprintln(cmd.OutOrStdout(), versionInfo(cmd.Root().Name()))
 			return err
 		},
 	}

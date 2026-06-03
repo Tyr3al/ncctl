@@ -80,13 +80,13 @@ Both base URLs must use `https`. HTTP URLs are rejected to prevent token exposur
 Every command that takes a `<server>` argument accepts either:
 
 - The **numeric SCP ID** (e.g. `12345`)
-- The **server name** as shown in the web UI (e.g. `v2202508149564377314`)
+- The **server name** as shown in the web UI (e.g. `v2202501234567890123`)
 
 The same applies to `--server-id` flags.
 
 ## Command Reference
 
-A full command reference with examples is in [docs/usage-examples.md](docs/usage-examples.md).
+A full command reference with examples is in [docs/ncctl.md](docs/ncctl.md).
 
 | Command group | What it manages |
 |---------------|----------------|
@@ -106,13 +106,13 @@ A full command reference with examples is in [docs/usage-examples.md](docs/usage
 
 ## ncserver
 
-`ncserver` is a companion binary for installation on netcup servers. It exposes a reduced command set scoped to the server it runs on and identifies itself automatically via the SCP API.
+`ncserver` is a companion binary for installation on netcup servers. It exposes a reduced command set scoped to the server it runs on and identifies itself automatically via the SCP API. See [docs/ncserver.md](docs/ncserver.md) for the full command reference.
 
 **Setup** (run once, typically during provisioning):
 
 ```sh
-ncserver login          # authenticate and store refresh token
-ncserver identify       # detect this server by IP, cache its ID
+ncserver --config /etc/ncserver/config.json login          # authenticate and store refresh token
+ncserver --config /etc/ncserver/config.json identify       # detect this server by IP, cache its ID
 ```
 
 **Keep the token alive:**
@@ -128,7 +128,7 @@ systemctl enable --now ncserver-token-renew.timer
 If auto-detection fails (e.g. the server's IP is not yet registered):
 
 ```sh
-ncserver identify --server-id v2202508149564377314
+ncserver --config /etc/ncserver/config.json identify --server-id v2202501234567890123
 ```
 
 **Available commands:** `login`, `logout`, `whoami`, `identify`, `status`, `failover list`, `failover route`, `rescue status/enable/disable`, `snapshots list/create`, `rdns get/set/delete`, `tasks wait`

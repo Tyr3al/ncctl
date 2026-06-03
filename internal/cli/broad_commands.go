@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/tyr3al/ncctl/pkg/netcup"
@@ -66,7 +67,8 @@ func newServerPowerCommand() *cobra.Command {
 				return err
 			}
 			defer cancel()
-			task, err := client.PatchServer(ctx, serverID, map[string]any{"state": args[1]}, stateOption)
+			state := strings.ToUpper(args[1])
+			task, err := client.PatchServer(ctx, serverID, map[string]any{"state": state}, stateOption)
 			if err != nil {
 				return err
 			}
@@ -131,7 +133,7 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			vlanID, _ := cmd.Flags().GetInt("vlan-id")
-			driver, _ := cmd.Flags().GetString("driver")
+			driver := strings.ToUpper(cmd.Flag("driver").Value.String())
 			opts, _ := commandOptions(cmd)
 			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
@@ -154,7 +156,7 @@ func addInterfaceWriteCommands(cmd *cobra.Command) {
 		Short: "Update an interface",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			driver, _ := cmd.Flags().GetString("driver")
+			driver := strings.ToUpper(cmd.Flag("driver").Value.String())
 			opts, _ := commandOptions(cmd)
 			client, ctx, cancel, serverID, err := commandServerID(cmd, opts, args[0])
 			if err != nil {
