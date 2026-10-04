@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-04
+
+### Fixed
+- `tasks cancel` failed with `error.content.type.invalid` because body-less PUT/POST/PATCH requests were sent without a `Content-Type` header
+
 ## [0.4.0] - 2026-06-15
 
 ### Changed
@@ -61,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--config` flag for specifying a custom config file path
 - Apache 2.0 license
 
-[Unreleased]: https://github.com/Tyr3al/ncctl/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/Tyr3al/ncctl/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/Tyr3al/ncctl/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Tyr3al/ncctl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Tyr3al/ncctl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Tyr3al/ncctl/compare/v0.1.0...v0.2.0
