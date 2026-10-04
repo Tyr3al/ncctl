@@ -117,7 +117,9 @@ func (c *Client) newRequest(ctx context.Context, method, path string, query url.
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
-	if body != nil {
+	// The SCP API rejects PUT/POST/PATCH requests without a Content-Type
+	// header, even when the request has no body (e.g. task cancel).
+	if body != nil || method == http.MethodPut || method == http.MethodPost || method == http.MethodPatch {
 		req.Header.Set("Content-Type", contentType)
 	}
 	if c.token != nil {
